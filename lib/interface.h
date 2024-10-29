@@ -85,7 +85,7 @@ void pont_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outGarden/pont_pump/state", msg);
+    client.publish("outPoolservice/pont_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void pool_light(bool option)
@@ -102,5 +102,5 @@ void pool_light(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outGarden/pool_light/state", msg);
+    client.publish("outPoolservice/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
