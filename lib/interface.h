@@ -10,30 +10,18 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-#define HCL_SWT 13  // D2
-#define NAOH_SWT 15 // D3
+#define HCL_SWT 16  // D2
+#define NAOH_SWT 5 // D3
+#define WASH_SWT 4 // D5
 
-#define WASH_SWT 12 // D5
-
-#define PONT_SWT 16      // D0
-#define POOL_LIGHT_SWT 5 // D1
-
-namespace interface
-{
-    typedef struct
-    {
-        bool pump_state;
-        bool valve_state;
-    } model_t;
-}
+#define PONT_SWT 0      // D0
+#define POOL_LIGHT_SWT 2 // D1
 
 extern char msg[50];
 extern PubSubClient client;
-extern interface::model_t *interface_model;
 
 void hcl_pump(bool option)
 {
-    interface_model->pump_state = option;
     if (option)
     {
         Serial.println("HCl Pump ON");
@@ -51,7 +39,6 @@ void hcl_pump(bool option)
 
 void naoh_pump(bool option)
 {
-    interface_model->valve_state = option;
     if (option)
     {
         Serial.println("NaOH Pump ON");
@@ -66,9 +53,9 @@ void naoh_pump(bool option)
     msg[1] = 0; // String end
     client.publish("outPoolservice/naoh_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
+
 void wash_pump(bool option)
 {
-    interface_model->valve_state = option;
     if (option)
     {
         Serial.println("Wash pump ON");
@@ -83,26 +70,26 @@ void wash_pump(bool option)
     msg[1] = 0; // String end
     client.publish("outPoolservice/wash_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
+
 void pont_pump(bool option)
 {
-    interface_model->valve_state = option;
     if (option)
     {
-        Serial.println("Valve ON");
+        Serial.println("Pont ON");
         digitalWrite(PONT_SWT, LOW);
     }
     else
     {
-        Serial.println("Valve OFF");
+        Serial.println("Pont OFF");
         digitalWrite(PONT_SWT, HIGH);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
     client.publish("outGarden/pont_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
+
 void pool_light(bool option)
 {
-    interface_model->valve_state = option;
     if (option)
     {
         Serial.println("Pool Light ON");

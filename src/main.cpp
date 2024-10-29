@@ -10,7 +10,6 @@ Project:   Garden Control
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
-#include "..\lib\model.h"
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
 
@@ -66,7 +65,7 @@ void callback(char *topic, byte *payload, unsigned int length)
   und mindestens eins sollte bei inPump/Egon ja drin sein
   */
   {
-    // Serial.print("topic = ");Serial.println(topic);
+     Serial.print("topic = ");Serial.println(topic);
     //  The topic includes a '/', we'll try to read the number of bottles from just after that
     topicStr.remove(0, topicStr.indexOf('/') + 1);
     /*
@@ -125,6 +124,7 @@ void callback(char *topic, byte *payload, unsigned int length)
       }
       else if (rootStr == "pont_pump")
       {
+        Serial.println("PONT PUMP");
         switch ((char)payload[0])
         {
         case '0':
@@ -140,6 +140,7 @@ void callback(char *topic, byte *payload, unsigned int length)
       }
       else if (rootStr == "pool_light")
       {
+        Serial.println("POOL LIGHT");
         switch ((char)payload[0])
         {
         case '0':
@@ -170,13 +171,13 @@ void setup()
   digitalWrite(HCL_SWT, HIGH);
 
   pinMode(NAOH_SWT, OUTPUT);
-  digitalWrite(NAOH_SWT, LOW);
+  digitalWrite(NAOH_SWT, HIGH);
 
   pinMode(WASH_SWT, OUTPUT);
   digitalWrite(WASH_SWT, HIGH);
  
   pinMode(PONT_SWT, OUTPUT);
-  digitalWrite(PONT_SWT, LOW);
+  digitalWrite(PONT_SWT, HIGH);
 
   pinMode(POOL_LIGHT_SWT, OUTPUT);
   digitalWrite(POOL_LIGHT_SWT, HIGH);
@@ -191,15 +192,6 @@ void setup()
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
-  // Tasks.add<dht22>("DHT22")
-  // ->setModel(&MODEL.climate)
-  // ->startFps(0.1); // alle 10 sec
-  //_dht22 = reinterpret_cast<dht22 *>(Tasks.getTaskByName("DHT22").get());
-
-  // Tasks.add<bmp180>("BMP180")
-  // ->setModel(&MODEL.pressure)
-  // ->startFps(0.1);
-  //_bmp180 = reinterpret_cast<bmp180 *>(Tasks.getTaskByName("BMP180").get());
 } /*--------------------------------------------------------------------------*/
 
 void reconnect()
