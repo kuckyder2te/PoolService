@@ -10,11 +10,11 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-#define HCL_SWT 16  // D2
+#define HCL_SWT 16 // D2
 #define NAOH_SWT 5 // D3
 #define WASH_SWT 4 // D5
 
-#define PONT_SWT 0      // D0
+#define PONT_SWT 0       // D0
 #define POOL_LIGHT_SWT 2 // D1
 
 extern char msg[50];
@@ -25,12 +25,12 @@ void hcl_pump(bool option)
     if (option)
     {
         Serial.println("HCl Pump ON");
-        digitalWrite(HCL_SWT, LOW);
+        digitalWrite(HCL_SWT, HIGH);
     }
     else
     {
         Serial.println("HCl Pump OFF");
-        digitalWrite(HCL_SWT, HIGH);
+        digitalWrite(HCL_SWT, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0;
@@ -42,12 +42,12 @@ void naoh_pump(bool option)
     if (option)
     {
         Serial.println("NaOH Pump ON");
-        digitalWrite(NAOH_SWT, LOW);
+        digitalWrite(NAOH_SWT, HIGH);
     }
     else
     {
         Serial.println("NaOH Pump OFF");
-        digitalWrite(NAOH_SWT, HIGH);
+        digitalWrite(NAOH_SWT, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
@@ -59,12 +59,12 @@ void wash_pump(bool option)
     if (option)
     {
         Serial.println("Wash pump ON");
-        digitalWrite(WASH_SWT, LOW);
+        digitalWrite(WASH_SWT, HIGH);
     }
     else
     {
         Serial.println("Wash pump OFF");
-        digitalWrite(WASH_SWT, HIGH);
+        digitalWrite(WASH_SWT, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
@@ -76,12 +76,12 @@ void pont_pump(bool option)
     if (option)
     {
         Serial.println("Pont ON");
-        digitalWrite(PONT_SWT, LOW);
+        digitalWrite(PONT_SWT, HIGH);
     }
     else
     {
         Serial.println("Pont OFF");
-        digitalWrite(PONT_SWT, HIGH);
+        digitalWrite(PONT_SWT, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
@@ -93,12 +93,12 @@ void pool_light(bool option)
     if (option)
     {
         Serial.println("Pool Light ON");
-        digitalWrite(POOL_LIGHT_SWT, LOW);
+        digitalWrite(POOL_LIGHT_SWT, HIGH);
     }
     else
     {
         Serial.println("Pool Light OFF");
-        digitalWrite(POOL_LIGHT_SWT, HIGH);
+        digitalWrite(POOL_LIGHT_SWT, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end

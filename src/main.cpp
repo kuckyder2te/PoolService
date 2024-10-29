@@ -65,7 +65,8 @@ void callback(char *topic, byte *payload, unsigned int length)
   und mindestens eins sollte bei inPump/Egon ja drin sein
   */
   {
-     Serial.print("topic = ");Serial.println(topic);
+    Serial.print("topic = ");
+    Serial.println(topic);
     //  The topic includes a '/', we'll try to read the number of bottles from just after that
     topicStr.remove(0, topicStr.indexOf('/') + 1);
     /*
@@ -124,7 +125,6 @@ void callback(char *topic, byte *payload, unsigned int length)
       }
       else if (rootStr == "pont_pump")
       {
-        Serial.println("PONT PUMP");
         switch ((char)payload[0])
         {
         case '0':
@@ -140,7 +140,6 @@ void callback(char *topic, byte *payload, unsigned int length)
       }
       else if (rootStr == "pool_light")
       {
-        Serial.println("POOL LIGHT");
         switch ((char)payload[0])
         {
         case '0':
@@ -168,23 +167,22 @@ void setup()
   Serial.begin(115200);
 
   pinMode(HCL_SWT, OUTPUT);
-  digitalWrite(HCL_SWT, HIGH);
+  digitalWrite(HCL_SWT, LOW);
 
   pinMode(NAOH_SWT, OUTPUT);
-  digitalWrite(NAOH_SWT, HIGH);
+  digitalWrite(NAOH_SWT, LOW);
 
   pinMode(WASH_SWT, OUTPUT);
-  digitalWrite(WASH_SWT, HIGH);
- 
+  digitalWrite(WASH_SWT, LOW);
+
   pinMode(PONT_SWT, OUTPUT);
-  digitalWrite(PONT_SWT, HIGH);
+  digitalWrite(PONT_SWT, LOW);
 
   pinMode(POOL_LIGHT_SWT, OUTPUT);
-  digitalWrite(POOL_LIGHT_SWT, HIGH);
- 
+  digitalWrite(POOL_LIGHT_SWT, LOW);
 
   Serial.println();
-  Serial.println("Status\tHumidity (%)\tTemperature (C)\t(F)\tHeatIndex (C)\t(F)");
+ // Serial.println("Status\tHumidity (%)\tTemperature (C)\t(F)\tHeatIndex (C)\t(F)");
   String thisBoard = ARDUINO_BOARD;
   Serial.println(thisBoard);
 
