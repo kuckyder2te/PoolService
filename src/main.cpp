@@ -13,7 +13,7 @@ Project:   Garden Control
 #include "..\lib\model.h"
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
-#include "..\lib\dht22.h"
+#include "..\lib\rainsensor.h"
 
 const char *ssid = SID;
 const char *password = PW;
@@ -210,8 +210,8 @@ void setup()
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
-    Tasks.add<dht22>("DHT22")
-  ->setModel(&MODEL.climate)
+    Tasks.add<rainSensor>("DHT22")
+  ->setModel(&MODEL.rain_value)
   ->startFps(0.1); // alle 10 sec
 
 } /*--------------------------------------------------------------------------*/
