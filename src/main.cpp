@@ -13,7 +13,6 @@ Project:   Garden Control
 #include "..\lib\model.h"
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
-#include "..\lib\rainsensor.h"
 
 const char *ssid = SID;
 const char *password = PW;
@@ -202,17 +201,13 @@ void setup()
   digitalWrite(HEAT_PUMP_SWT, LOW);
 
   Serial.println();
- // Serial.println("Status\tHumidity (%)\tTemperature (C)\t(F)\tHeatIndex (C)\t(F)");
+  Serial.println("Poolservice inkl. pH, Pool Light, Pool erwärmen und Teichpumpe");
   String thisBoard = ARDUINO_BOARD;
   Serial.println(thisBoard);
 
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
-
-    Tasks.add<rainSensor>("DHT22")
-  ->setModel(&MODEL.rain_value)
-  ->startFps(0.1); // alle 10 sec
 
 } /*--------------------------------------------------------------------------*/
 
