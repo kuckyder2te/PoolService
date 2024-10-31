@@ -10,8 +10,10 @@ Project:   Garden Control
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
+#include "..\lib\model.h"
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
+#include "..\lib\dht22.h"
 
 const char *ssid = SID;
 const char *password = PW;
@@ -153,6 +155,21 @@ void callback(char *topic, byte *payload, unsigned int length)
           break;
         }
       }
+            else if (rootStr == "heat_pump")
+      {
+        switch ((char)payload[0])
+        {
+        case '0':
+          heat_pump(false);
+          break;
+        case '1':
+          heat_pump(true);
+          break;
+        default:
+          // Warning !! Undefined payload or not 1/0
+          break;
+        }
+      }
       else
       {
         Serial.println("Unknown topic");
@@ -181,6 +198,9 @@ void setup()
   pinMode(POOL_LIGHT_SWT, OUTPUT);
   digitalWrite(POOL_LIGHT_SWT, LOW);
 
+   pinMode(HEAT_PUMP_SWT, OUTPUT);
+  digitalWrite(HEAT_PUMP_SWT, LOW);
+
   Serial.println();
  // Serial.println("Status\tHumidity (%)\tTemperature (C)\t(F)\tHeatIndex (C)\t(F)");
   String thisBoard = ARDUINO_BOARD;
@@ -189,6 +209,10 @@ void setup()
   setup_wifi();
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+
+    Tasks.add<dht22>("DHT22")
+  ->setModel(&MODEL.climate)
+  ->startFps(0.1); // alle 10 sec
 
 } /*--------------------------------------------------------------------------*/
 

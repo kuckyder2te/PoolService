@@ -17,6 +17,17 @@
 #define PONT_SWT 0       // D0
 #define POOL_LIGHT_SWT 2 // D1
 
+#define HEAT_PUMP_SWT 13 // D7
+
+namespace interface
+{
+    typedef struct
+    {
+        bool pump_state;
+        bool valve_state;
+    } model_t;
+}
+
 extern char msg[50];
 extern PubSubClient client;
 
@@ -104,3 +115,21 @@ void pool_light(bool option)
     msg[1] = 0; // String end
     client.publish("outPoolservice/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
+
+void heat_pump(bool option)
+{
+    if (option)
+    {
+        Serial.println("Heat pump ON");
+        digitalWrite(HEAT_PUMP_SWT, HIGH);
+    }
+    else
+    {
+        Serial.println("Heat Pump OFF");
+        digitalWrite(HEAT_PUMP_SWT, LOW);
+    }
+    msg[0] = (option ? '1' : '0');
+    msg[1] = 0; // String end
+    client.publish("outPoolservice/heat_pump/state", msg);
+} /*--------------------------------------------------------------------------*/
+
