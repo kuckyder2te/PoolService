@@ -9,15 +9,7 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
-
-#define HCL_SWT 16 // D2
-#define NAOH_SWT 5 // D3
-#define WASH_SWT 4 // D5
-
-#define PONT_SWT 0       // D0
-#define POOL_LIGHT_SWT 2 // D1
-
-#define HEAT_PUMP_SWT 13 // D7
+#include "..\lib\def.h"
 
 namespace interface
 {
@@ -70,12 +62,12 @@ void wash_pump(bool option)
     if (option)
     {
         Serial.println("Wash pump ON");
-        digitalWrite(WASH_SWT, HIGH);
+        digitalWrite(CLEAN_SWT, HIGH);
     }
     else
     {
         Serial.println("Wash pump OFF");
-        digitalWrite(WASH_SWT, LOW);
+        digitalWrite(CLEAN_SWT, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
