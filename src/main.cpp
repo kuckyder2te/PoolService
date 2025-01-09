@@ -12,10 +12,12 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
+#include <DS18B20_INT.h>
 #include "..\lib\model.h"
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
 #include "..\lib\def.h"
+#include "..\lib\temperature.h"
 
 // #include <ArduinoOTA.h>   //Rainsensor
 
@@ -23,83 +25,12 @@ const char *ssid = SID;
 const char *password = PW;
 const char *mqtt_server = MQTT;
 
-// #define ESPHostname "Regensensor"    //Rainsensor
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE];
 
-const int rainDigitalPin = 12; // Rainsensor
-const int rainAnalogPin = A0;
-const int rainSensorPowerPin = 14;
-const int rainLight = 1000;  // Bei ESP8266 - 980 als Richtwert
-const int rainHeavy = 500;   // Bei ESP8266 - 900 als Richtwert
-const int sensorTakt = 2000; // alle 2 Sekunden wird der Sensor ausgelesen
-
-#define regenStatus_topic "RegenStatus"
-#define regenAnalog_topic "RegenAnalog"
-#define regenDigital_topic "RegenDigital"
-#define inTopic "Regenensor/intopic"
-#define outTopic "Regenensor/outTopic"
-
-int lastRainDigital = 0; // Rainsensor
-
-// if using ESP32
-//    int rainAnalog = 4095;
-// if using ESP8266
-int rainAnalog = 1023;
-
-void getRainValues()
-{
-  digitalWrite(rainSensorPowerPin, HIGH); // Schaltet den Strom für den Sensor ein
-  delay(100);
-  int newRainDigital = digitalRead(rainDigitalPin);
-  int newRainAnalog = analogRead(rainAnalogPin);
-
-  if (newRainDigital != lastRainDigital)
-  {
-    if (newRainDigital == HIGH)
-    {
-      client.publish(regenDigital_topic, "ON");
-      Serial.print("Digital Info: Kein Regen\n");
-    }
-    else
-    {
-      client.publish(regenDigital_topic, "OFF");
-      Serial.print("Digital Info: Regen\n");
-    }
-    // Kurze Pause zum entprellen
-    delay(50);
-  }
-  lastRainDigital = newRainDigital;
-
-  rainAnalog = newRainAnalog;
-  Serial.print("RegenAnalog: ");
-  Serial.println(rainAnalog);
-  client.publish(regenAnalog_topic, String(rainAnalog).c_str(), true);
-  if (rainAnalog <= rainLight)
-  {
-    if (rainAnalog <= rainHeavy)
-    {
-      Serial.print("Starker Regen\n");
-      client.publish(regenStatus_topic, "Starker Regen");
-    }
-    else
-    {
-      Serial.print("Leichter Regen\n");
-      client.publish(regenStatus_topic, "Leichter Regen");
-    }
-  }
-  else
-  {
-    Serial.print("Kein Regen\n");
-    client.publish(regenStatus_topic, "Kein Regen");
-  }
-
-  digitalWrite(rainSensorPowerPin, LOW); // Schaltet den Strom für den Sensor aus
-}
 
 void setup_wifi()
 {
@@ -124,6 +55,8 @@ void setup_wifi()
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
+
+  init();
 
 } /*--------------------------------------------------------------------------*/
 
@@ -187,15 +120,15 @@ void callback(char *topic, byte *payload, unsigned int length)
           break;
         }
       }
-      else if (rootStr == "wash_pump")
+      else if (rootStr == "clean_pump")
       {
         switch ((char)payload[0])
         {
         case '0':
-          wash_pump(false);
+          clean_pump(false);
           break;
         case '1':
-          wash_pump(true);
+          clean_pump(true);
           break;
         default:
           // Warning !! Undefined payload or not 1/0
@@ -260,36 +193,38 @@ void setup()
   delay(2000);
   Serial.begin(115200);
 
-  pinMode(HCL_SWT, OUTPUT);
-  digitalWrite(HCL_SWT, LOW);
+  pinMode(HCL_PUMP, OUTPUT);
+  digitalWrite(HCL_PUMP, LOW);
 
-  pinMode(HCL_ERR, INPUT);
-  digitalWrite(HCL_SWT, LOW);
+  pinMode(HCL_MON, INPUT);
+  digitalWrite(HCL_MON, LOW);
 
-  pinMode(NAOH_SWT, OUTPUT);
-  digitalWrite(NAOH_SWT, LOW);
+  pinMode(NAOH_PUMP, OUTPUT);
+  digitalWrite(NAOH_PUMP, LOW);
 
-  pinMode(NAOH_ERR, INPUT);
-  digitalWrite(NAOH_ERR, LOW); 
+  pinMode(NAOH_MON, INPUT);
+  digitalWrite(NAOH_MON, LOW);
 
-  pinMode(CLEAN_SWT, OUTPUT);
-  digitalWrite(CLEAN_SWT, LOW);
+  pinMode(CLEAN_PUMP, OUTPUT);
+  digitalWrite(CLEAN_PUMP, LOW);
 
-  pinMode(CLEAN_ERR, INPUT);
-  digitalWrite(CLEAN_ERR, LOW); 
+  pinMode(CLEAN_MON, INPUT);
+  digitalWrite(CLEAN_MON, LOW);
 
-  pinMode(PONT_SWT, OUTPUT);
-  digitalWrite(PONT_SWT, LOW);
 
-  pinMode(POOL_LIGHT_SWT, OUTPUT);
-  digitalWrite(POOL_LIGHT_SWT, LOW);
 
-  pinMode(HEAT_PUMP_SWT, OUTPUT);
-  digitalWrite(HEAT_PUMP_SWT, LOW);
+  // pinMode(PONT_SWT, OUTPUT);
+  // digitalWrite(PONT_SWT, LOW);
 
-  pinMode(rainDigitalPin, INPUT); // Rainsensor
-  pinMode(rainAnalogPin, INPUT);
-  pinMode(rainSensorPowerPin, OUTPUT);
+  // pinMode(POOL_LIGHT_SWT, OUTPUT);
+  // digitalWrite(POOL_LIGHT_SWT, LOW);
+
+  // pinMode(HEAT_PUMP_SWT, OUTPUT);
+  // digitalWrite(HEAT_PUMP_SWT, LOW);
+
+  // pinMode(rainDigitalPin, INPUT); // Rainsensor
+  // pinMode(rainAnalogPin, INPUT);
+  // pinMode(rainSensorPowerPin, OUTPUT);
 
   Serial.println();
   Serial.println("Poolservice inkl. pH, Pool Light, Pool erwärmen und Teichpumpe");
@@ -305,6 +240,8 @@ void setup()
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
+  Tasks.add<temperature>("temperature")->startFps(0.01);
+ 
 } /*--------------------------------------------------------------------------*/
 
 void reconnect()
@@ -343,10 +280,13 @@ void reconnect()
 
 void loop()
 {
+  static bool clean_err = true;
+  static bool hcl_err = true;
+  static bool naoh_err = true;
   static unsigned long lastMillis = millis();
-  uint16_t delayTime = 10000; // 10 sec
+  uint16_t delayTime = 1000; // 10 sec
 
-  // Tasks.update();
+  Tasks.update();
 
   if (!client.connected())
   {
@@ -355,11 +295,83 @@ void loop()
   client.loop();
 
   //   ArduinoOTA.handle();             //Rainsensor
-  long now = millis();
-  if (now - lastMsg > sensorTakt)
+  // long now = millis();
+  // if (now - lastMsg > sensorTakt)
+  // {
+  //   lastMsg = now;
+  //   getRainValues(); // Rainsensor
+  // }
+
+  if (millis() - lastMillis >= delayTime)
   {
-    lastMsg = now;
-    getRainValues(); // Rainsensor
+    if (digitalRead(CLEAN_MON) == digitalRead(CLEAN_PUMP))
+    {
+      if (!clean_err)
+      {
+        client.publish("outPoolservice/clean_error", "true");
+      }
+      clean_err = true;
+    }
+    else
+    {
+      if (clean_err)
+      {
+        client.publish("outPoolservice/clean_error", "false");
+      }
+      clean_err = false;
+    }
+
+    if (digitalRead(HCL_MON) == digitalRead(HCL_PUMP))
+    {
+      if (!hcl_err)
+      {
+        client.publish("outPoolservice/hcl_error", "true");
+      }
+      hcl_err = true;
+    }
+    else
+    {
+      if (hcl_err)
+      {
+        client.publish("outPoolservice/hcl_error", "false");
+      }
+      hcl_err = false;
+    }
+
+    if (digitalRead(NAOH_MON) == digitalRead(NAOH_PUMP))
+    {
+      if (!naoh_err)
+      {
+        client.publish("outPoolservice/naoh_error", "true");
+      }
+      naoh_err = true;
+    }
+    else
+    {
+      if (naoh_err)
+      {
+        client.publish("outPoolservice/naoh_error", "false");
+      }
+      naoh_err = false;
+    }
+
+    // bool clear_err = digitalRead(CLEAN_MON);
+    // if (clear_err)
+    // {
+    //   Serial.println("Clear alert");
+    // }
+    // else
+    // {
+    //   Serial.println("Clear pump switched off");
+    // }
+
+    lastMillis = millis();
   }
+  // client.publish("outGarden/pressure", String(MODEL.pressure.pressureSealevel).c_str());
+  // client.publish("outGarden/temperature", String(MODEL.pressure.temp).c_str());
+  // client.publish("outGarden/humidity", String(MODEL.climate.humidity).c_str());
+  // client.publish("outGarden/pool_pump/state", String(MODEL.interface.pump_state).c_str());
+  // client.publish("outGarden/valve/state", String(MODEL.interface.valve_state).c_str());
+  // client.publish("outGarden/temperature", _dht22->getTemperature());
 
 } /*--------------------------------------------------------------------------*/

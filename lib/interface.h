@@ -28,12 +28,12 @@ void hcl_pump(bool option)
     if (option)
     {
         Serial.println("HCl Pump ON");
-        digitalWrite(HCL_SWT, HIGH);
+        digitalWrite(HCL_PUMP, HIGH);
     }
     else
     {
         Serial.println("HCl Pump OFF");
-        digitalWrite(HCL_SWT, LOW);
+        digitalWrite(HCL_PUMP, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0;
@@ -45,33 +45,33 @@ void naoh_pump(bool option)
     if (option)
     {
         Serial.println("NaOH Pump ON");
-        digitalWrite(NAOH_SWT, HIGH);
+        digitalWrite(NAOH_PUMP, HIGH);
     }
     else
     {
         Serial.println("NaOH Pump OFF");
-        digitalWrite(NAOH_SWT, LOW);
+        digitalWrite(NAOH_PUMP, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
     client.publish("outPoolservice/naoh_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void wash_pump(bool option)
+void clean_pump(bool option)
 {
     if (option)
     {
         Serial.println("Wash pump ON");
-        digitalWrite(CLEAN_SWT, HIGH);
+        digitalWrite(CLEAN_PUMP, HIGH);
     }
     else
     {
         Serial.println("Wash pump OFF");
-        digitalWrite(CLEAN_SWT, LOW);
+        digitalWrite(CLEAN_PUMP, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outPoolservice/wash_pump/state", msg);
+    client.publish("outPoolservice/clean_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void pont_pump(bool option)
