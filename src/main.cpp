@@ -56,8 +56,6 @@ void setup_wifi()
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
-  init();
-
 } /*--------------------------------------------------------------------------*/
 
 void callback(char *topic, byte *payload, unsigned int length)
@@ -180,6 +178,24 @@ void callback(char *topic, byte *payload, unsigned int length)
           break;
         }
       }
+      else if (rootStr == "colors")    //  "rgb(87, 101, 16)"
+      {
+        Serial.print("COLORS");
+    // Serial.println(topic);
+        // switch ((char)payload[0])
+        // {
+        // case '0':
+        //   heat_pump(false);
+        //   break;
+        // case '1':
+        //   heat_pump(true);
+        //   break;
+        // default:
+        //   // Warning !! Undefined payload or not 1/0
+        //   break;
+        // }
+      }
+
       else
       {
         Serial.println("Unknown topic");
