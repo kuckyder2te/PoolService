@@ -226,18 +226,14 @@ void setup()
   pinMode(CLEAN_MON, INPUT);
   digitalWrite(CLEAN_MON, LOW);
 
-  // pinMode(PONT_SWT, OUTPUT);
-  // digitalWrite(PONT_SWT, LOW);
+  pinMode(PONT_SWT, OUTPUT);
+  digitalWrite(PONT_SWT, LOW);
 
-  // pinMode(POOL_LIGHT_SWT, OUTPUT);
-  // digitalWrite(POOL_LIGHT_SWT, LOW);
+  pinMode(POOL_LIGHT_SWT, OUTPUT);
+  digitalWrite(POOL_LIGHT_SWT, LOW);
 
-  // pinMode(HEAT_PUMP_SWT, OUTPUT);
-  // digitalWrite(HEAT_PUMP_SWT, LOW);
-
-  // pinMode(rainDigitalPin, INPUT); // Rainsensor
-  // pinMode(rainAnalogPin, INPUT);
-  // pinMode(rainSensorPowerPin, OUTPUT);
+  pinMode(HEAT_PUMP_SWT, OUTPUT);
+  digitalWrite(HEAT_PUMP_SWT, LOW);
 
   Serial.println();
   Serial.println("Poolservice inkl. pH, Pool Light, Pool erwärmen und Teichpumpe");
