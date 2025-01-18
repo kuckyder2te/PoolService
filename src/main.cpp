@@ -12,7 +12,8 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
-#include <DS18B20_INT.h>
+#include <DallasTemperature.h>
+#include <ArduinoJson.h>
 #include "..\lib\model.h"
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
@@ -27,10 +28,10 @@ const char *mqtt_server = MQTT;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+JsonDocument doc;
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE];
-
 
 void setup_wifi()
 {
@@ -70,6 +71,7 @@ void callback(char *topic, byte *payload, unsigned int length)
   Serial.println();
 
   String topicStr(topic); // macht aus dem Topic ein String -> topicStr
+
   if (topicStr.indexOf('/') >= 0)
   /*prüft ob die Nachricht ein / enthält was ja den Pfad des Topics aufteilt
   und mindestens eins sollte bei inPump/Egon ja drin sein
@@ -178,24 +180,21 @@ void callback(char *topic, byte *payload, unsigned int length)
           break;
         }
       }
-      else if (rootStr == "colors")    //  "rgb(87, 101, 16)"
+      else if (rootStr == "colors") //  "rgb(87, 101, 16)"
       {
-        Serial.print("COLORS");
-    // Serial.println(topic);
-        // switch ((char)payload[0])
-        // {
-        // case '0':
-        //   heat_pump(false);
-        //   break;
-        // case '1':
-        //   heat_pump(true);
-        //   break;
-        // default:
-        //   // Warning !! Undefined payload or not 1/0
-        //   break;
-        // }
-      }
+        DeserializationError error = deserializeJson(doc, payload);
 
+        if (error)
+        {
+          Serial.print("deserializeJson() failed: ");
+          Serial.println(error.c_str());
+          return;
+        }
+        else
+        {
+          setColor(doc["r"], doc["g"], doc["b"]);
+        }
+      }
       else
       {
         Serial.println("Unknown topic");
@@ -227,8 +226,6 @@ void setup()
   pinMode(CLEAN_MON, INPUT);
   digitalWrite(CLEAN_MON, LOW);
 
-
-
   // pinMode(PONT_SWT, OUTPUT);
   // digitalWrite(PONT_SWT, LOW);
 
@@ -257,7 +254,7 @@ void setup()
   client.setCallback(callback);
 
   Tasks.add<temperature>("temperature")->startFps(0.01);
- 
+
 } /*--------------------------------------------------------------------------*/
 
 void reconnect()

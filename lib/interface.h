@@ -79,33 +79,16 @@ void pont_pump(bool option)
     if (option)
     {
         Serial.println("Pont ON");
-        digitalWrite(PONT_SWT, HIGH);
+        digitalWrite(RELAY_2, HIGH);
     }
     else
     {
         Serial.println("Pont OFF");
-        digitalWrite(PONT_SWT, LOW);
+        digitalWrite(RELAY_2, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
     client.publish("outPoolservice/pont_pump/state", msg);
-} /*--------------------------------------------------------------------------*/
-
-void pool_light(bool option)
-{
-    if (option)
-    {
-        Serial.println("Pool Light ON");
-        digitalWrite(POOL_LIGHT_SWT, HIGH);
-    }
-    else
-    {
-        Serial.println("Pool Light OFF");
-        digitalWrite(POOL_LIGHT_SWT, LOW);
-    }
-    msg[0] = (option ? '1' : '0');
-    msg[1] = 0; // String end
-    client.publish("outPoolservice/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void heat_pump(bool option)
@@ -113,15 +96,43 @@ void heat_pump(bool option)
     if (option)
     {
         Serial.println("Heat pump ON");
-        digitalWrite(HEAT_PUMP_SWT, HIGH);
+        digitalWrite(RELAY_3, HIGH);
     }
     else
     {
         Serial.println("Heat Pump OFF");
-        digitalWrite(HEAT_PUMP_SWT, LOW);
+        digitalWrite(RELAY_3, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
     client.publish("outPoolservice/heat_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
+void pool_light(bool option)
+{
+    if (option)
+    {
+        Serial.println("Pool Light ON");
+        digitalWrite(POOL_LIGHT, HIGH);
+    }
+    else
+    {
+        Serial.println("Pool Light OFF");
+        digitalWrite(POOL_LIGHT, LOW);
+    }
+    msg[0] = (option ? '1' : '0');
+    msg[1] = 0; // String end
+    client.publish("outPoolservice/pool_light/state", msg);
+} /*--------------------------------------------------------------------------*/
+
+void setColor(int r, int g, int b){
+
+    Serial.printf("r: %d, g: %d, b: %d\r\n",r,g,b);
+
+    digitalWrite(LED_STRIPE_RED, r);
+    digitalWrite(LED_STRIPE_GREEN, g);
+    digitalWrite(LED_STRIPE_BLUE, b);
+
+} /*--------------------------------------------------------------------------*/
+
+/*------------------------ end of interface.h------------------------------------*/
