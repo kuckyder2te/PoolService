@@ -16,10 +16,10 @@
 
 #define LED_STRIPE_GREEN 16
 #define LED_STRIPE_BLUE   4
-#define LED_STRIPE_RED   13
+#define LED_STRIPE_RED    2
 
 #define RELAY_1  26  //NC
 #define RELAY_2  27  // Pont Pump
 #define RELAY_3  14  // Heat Pump
 
-#define ONE_WIRE_BUS 23
+#define ONE_WIRE_BUS 19

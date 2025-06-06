@@ -16,6 +16,8 @@
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
+float tempC;    //später ins Model aufnehmen
+
 #include <TaskManager.h>
 
 class temperature : public Task::Base
@@ -36,19 +38,22 @@ public:
     {
         // call sensors.requestTemperatures() to issue a global temperature
         // request to all devices on the bus
-        Serial.print("Requesting temperatures...");
+     //   Serial.print("Requesting temperatures...");
         sensors.requestTemperatures(); // Send the command to get temperatures
-        Serial.println("DONE");
+     //   Serial.println("DONE");
         // After we got the temperatures, we can print them here.
         // We use the function ByIndex, and as an example get the temperature from the first sensor only.
-        float tempC = sensors.getTempCByIndex(0);
+        tempC = sensors.getTempCByIndex(0);
 
         // Check if reading was successful
         if (tempC != DEVICE_DISCONNECTED_C)
         {
-            Serial.print("Temperature for the device 1 (index 0) is: ");
-            Serial.println(tempC);
-        }
+    //        Serial.print("Temperature for the device 1 (index 0) is: ");
+     //       Serial.println(tempC);
+            // msg[0] = (option ? '1' : '0');
+            // msg[1] = 0; // String end
+            // client.publish("outPoolservice/naoh_pump/state", msg);
+     }
         else
         {
             Serial.println("Error: Could not read temperature data");

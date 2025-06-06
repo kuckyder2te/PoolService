@@ -7,7 +7,7 @@
 */
 
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+// #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include "..\lib\def.h"
 
@@ -22,6 +22,7 @@ namespace interface
 
 extern char msg[50];
 extern PubSubClient client;
+uint8_t _r, _g, _b;
 
 void hcl_pump(bool option)
 {
@@ -108,31 +109,40 @@ void heat_pump(bool option)
     client.publish("outPoolservice/heat_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void pool_light(bool option)
+void pool_light(char state)
 {
-    if (option)
+    Serial.printf("Pool Light State:%d", state);
+    Serial.println();
+    if (state != '0')
     {
-        Serial.println("Pool Light ON");
-        digitalWrite(POOL_LIGHT, HIGH);
+        Serial.println("LED stripes ON");
+        analogWrite(LED_STRIPE_RED, 255 - _r);
+        analogWrite(LED_STRIPE_GREEN, 255 - _g);
+        analogWrite(LED_STRIPE_BLUE, 255 - _b);
     }
     else
     {
-        Serial.println("Pool Light OFF");
-        digitalWrite(POOL_LIGHT, LOW);
+        Serial.println("LED stripes OFF");
+        analogWrite(LED_STRIPE_RED, 255);
+        analogWrite(LED_STRIPE_GREEN, 255);
+        analogWrite(LED_STRIPE_BLUE, 255);
     }
-    msg[0] = (option ? '1' : '0');
+    msg[0] = (state ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outPoolservice/pool_light/state", msg);
+    client.publish("outGarden/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void setColor(int r, int g, int b){
-
-    Serial.printf("r: %d, g: %d, b: %d\r\n",r,g,b);
-
-    digitalWrite(LED_STRIPE_RED, r);
-    digitalWrite(LED_STRIPE_GREEN, g);
-    digitalWrite(LED_STRIPE_BLUE, b);
-
+void pool_light(uint8_t r, uint8_t g, uint8_t b)
+{
+    Serial.printf("Pool Light R:%d, G:%d, B:%d", r, g, b);
+    _r = r;
+    _g = g;
+    _b = b;
+    analogWrite(LED_STRIPE_RED, 255 - _r);
+    analogWrite(LED_STRIPE_GREEN, 255 - _g);
+    analogWrite(LED_STRIPE_BLUE, 255 - _b);
+    sprintf(msg, "{ r:%d, g:%d, b:%d }", _r, _g, _b);
+    client.publish("outGarden/pool_light/color", msg);
 } /*--------------------------------------------------------------------------*/
 
 /*------------------------ end of interface.h------------------------------------*/

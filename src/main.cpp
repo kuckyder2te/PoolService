@@ -2,14 +2,15 @@
 File name: main.cpp
 Author:    Stefan Scholz / Wilhel Kuckelsberg
 Date:      2024.10.10
-Project:   Garden Control
+Project:   Pool Control
 
 https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Regensensor
 */
 
 #include <Arduino.h>
 #include <TaskManager.h>
-#include <ESP8266WiFi.h>
+// #include <ESP8266WiFi.h>
+#include <WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
 #include <DallasTemperature.h>
@@ -20,7 +21,7 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 #include "..\lib\def.h"
 #include "..\lib\temperature.h"
 
-// #include <ArduinoOTA.h>   //Rainsensor
+// #include <ArduinoOTA.h>
 
 const char *ssid = SID;
 const char *password = PW;
@@ -150,21 +151,6 @@ void callback(char *topic, byte *payload, unsigned int length)
           break;
         }
       }
-      else if (rootStr == "pool_light")
-      {
-        switch ((char)payload[0])
-        {
-        case '0':
-          pool_light(false);
-          break;
-        case '1':
-          pool_light(true);
-          break;
-        default:
-          // Warning !! Undefined payload or not 1/0
-          break;
-        }
-      }
       else if (rootStr == "heat_pump")
       {
         switch ((char)payload[0])
@@ -180,19 +166,35 @@ void callback(char *topic, byte *payload, unsigned int length)
           break;
         }
       }
-      else if (rootStr == "colors") //  "rgb(87, 101, 16)"
+      else if (rootStr == "pool_light")
       {
-        DeserializationError error = deserializeJson(doc, payload);
+        topicStr.remove(0, topicStr.indexOf('/') + 1); // delete pool_light from topic
+        rootStr = topicStr.substring(0, topicStr.indexOf('/'));
 
-        if (error)
+        Serial.print("RootState - ");Serial.println(rootStr);
+
+        if (rootStr == "state")
         {
-          Serial.print("deserializeJson() failed: ");
-          Serial.println(error.c_str());
+          pool_light((char)payload[0]);
           return;
         }
-        else
+        if (rootStr == "colors")
         {
-          setColor(doc["r"], doc["g"], doc["b"]);
+          topicStr.remove(0, topicStr.indexOf('/') + 1); // delete colors from topic
+          if (topicStr == "rgb"){ // should be the rest
+            DeserializationError error = deserializeJson(doc, payload);
+
+            if (error)
+            {
+              Serial.print("deserializeJson() failed: ");
+              Serial.println(error.c_str());
+              return;
+            }
+            else
+            {
+              pool_light(doc["r"], doc["g"], doc["b"]);
+            }
+          }
         }
       }
       else
@@ -226,14 +228,14 @@ void setup()
   pinMode(CLEAN_MON, INPUT);
   digitalWrite(CLEAN_MON, LOW);
 
-  pinMode(PONT_SWT, OUTPUT);
-  digitalWrite(PONT_SWT, LOW);
+  pinMode(RELAY_2, OUTPUT);
+  digitalWrite(RELAY_2, LOW);
 
-  pinMode(POOL_LIGHT_SWT, OUTPUT);
-  digitalWrite(POOL_LIGHT_SWT, LOW);
+  pinMode(RELAY_3, OUTPUT);
+  digitalWrite(RELAY_3, LOW);
 
-  pinMode(HEAT_PUMP_SWT, OUTPUT);
-  digitalWrite(HEAT_PUMP_SWT, LOW);
+  // pinMode(RELAY_1, OUTPUT); // not in used
+  // digitalWrite(RELAY_1, LOW);
 
   Serial.println();
   Serial.println("Poolservice inkl. pH, Pool Light, Pool erwärmen und Teichpumpe");
@@ -242,14 +244,14 @@ void setup()
 
   setup_wifi();
 
-  // ArduinoOTA.setHostname(ESPHostname);   //Rainsensor
-  //  ArduinoOTA.setPassword("admin");
+  // ArduinoOTA.setHostname(ESPHostname);
+  // ArduinoOTA.setPassword("admin");
   // ArduinoOTA.begin();
 
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
-  Tasks.add<temperature>("temperature")->startFps(0.01);
+  Tasks.add<temperature>("temperature")->startFps(1);
 
 } /*--------------------------------------------------------------------------*/
 
@@ -377,7 +379,8 @@ void loop()
     lastMillis = millis();
   }
   // client.publish("outGarden/pressure", String(MODEL.pressure.pressureSealevel).c_str());
-  // client.publish("outGarden/temperature", String(MODEL.pressure.temp).c_str());
+   client.publish("outGarden/temperature", String(tempC).c_str());
+   // Serial.print("loop ");Serial.println(tempC);  TEST
   // client.publish("outGarden/humidity", String(MODEL.climate.humidity).c_str());
   // client.publish("outGarden/pool_pump/state", String(MODEL.interface.pump_state).c_str());
   // client.publish("outGarden/valve/state", String(MODEL.interface.valve_state).c_str());
