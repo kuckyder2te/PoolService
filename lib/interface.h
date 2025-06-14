@@ -162,4 +162,66 @@ void pool_light(uint8_t r, uint8_t g, uint8_t b, char state)
     client.publish("outPoolservice/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
+void color_gardient()
+{
+    uint8_t r = 0;
+    uint8_t g;
+    uint8_t b;
+    static uint8_t step = 0;
+    uint16_t gradient_rate = 1000;
+    uint16_t gradient_step = 0;
+
+    unsigned long lastMillis = millis();
+    if (lastMillis - millis() >= gradient_rate)
+    {
+        switch (step)
+        {
+        case 0:
+            g = 255;
+            b = 0;
+            step++;
+        case 1:
+            g = 230;
+            b = 25;
+            step++;
+        case 2:
+            g = 204;
+            b = 51;
+            step++;
+        case 3:
+            g = 179;
+            b = 76;
+            step++;
+        case 4:
+            g = 153;
+            b = 102;
+            step++;
+        case 5:
+            g = 128;
+            b = 128;
+            step++;
+        case 6:
+            g = 102;
+            b = 153;
+            step++;
+        case 7:
+            g = 76;
+            b = 179;
+            step++;
+        case 8:
+            g = 51;
+            b = 204;
+            step++;
+        case 9:
+            g = 25;
+            b = 230;
+            step++;
+        case 10:
+            g = 0;
+            b = 255;
+            step++;
+        }
+    }
+}
+
 /*------------------------ end of interface.h------------------------------------*/

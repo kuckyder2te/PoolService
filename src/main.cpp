@@ -192,7 +192,7 @@ void callback(char *topic, byte *payload, unsigned int length)
             }
             else
             {
-              pool_light(doc["r"], doc["g"], doc["b"]);
+              pool_light(doc["r"], doc["g"], doc["b"], (char)payload[0]);
             }
           }
         }
@@ -378,12 +378,8 @@ void loop()
 
     lastMillis = millis();
   }
-  // client.publish("outGarden/pressure", String(MODEL.pressure.pressureSealevel).c_str());
-   client.publish("outGarden/temperature", String(tempC).c_str());
-   // Serial.print("loop ");Serial.println(tempC);  TEST
-  // client.publish("outGarden/humidity", String(MODEL.climate.humidity).c_str());
+   client.publish("outGarden/temperature", String(MODEL.tempC).c_str());
   // client.publish("outGarden/pool_pump/state", String(MODEL.interface.pump_state).c_str());
   // client.publish("outGarden/valve/state", String(MODEL.interface.valve_state).c_str());
-  // client.publish("outGarden/temperature", _dht22->getTemperature());
 
 } /*--------------------------------------------------------------------------*/
