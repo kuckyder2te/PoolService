@@ -43,7 +43,7 @@ public:
      //   Serial.println("DONE");
         // After we got the temperatures, we can print them here.
         // We use the function ByIndex, and as an example get the temperature from the first sensor only.
-        tempC = sensors.getTempCByIndex(0);
+        MODEL.tempC = sensors.getTempCByIndex(0);
 
         // Check if reading was successful
         if (tempC != DEVICE_DISCONNECTED_C)

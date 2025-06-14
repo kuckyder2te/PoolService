@@ -111,9 +111,19 @@ void heat_pump(bool option)
 
 void pool_light(char state)
 {
-    Serial.printf("Pool Light State:%d", state);
+    static bool test = false;
+    if (state == 116)
+    {
+        test = true;
+    }
+    else
+    {
+        test = false;
+    }
+
+    Serial.printf("Pool Light State: %d", state);
     Serial.println();
-    if (state != '0')
+    if (test)
     {
         Serial.println("LED stripes ON");
         analogWrite(LED_STRIPE_RED, 255 - _r);
@@ -129,11 +139,14 @@ void pool_light(char state)
     }
     msg[0] = (state ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outGarden/pool_light/state", msg);
+    client.publish("outPoolservice/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void pool_light(uint8_t r, uint8_t g, uint8_t b)
+void pool_light(uint8_t r, uint8_t g, uint8_t b, char state)
 {
+    Serial.printf("Pool Light Colours: %d", state);
+    Serial.println();
+
     Serial.printf("Pool Light R:%d, G:%d, B:%d", r, g, b);
     _r = r;
     _g = g;
@@ -142,7 +155,11 @@ void pool_light(uint8_t r, uint8_t g, uint8_t b)
     analogWrite(LED_STRIPE_GREEN, 255 - _g);
     analogWrite(LED_STRIPE_BLUE, 255 - _b);
     sprintf(msg, "{ r:%d, g:%d, b:%d }", _r, _g, _b);
-    client.publish("outGarden/pool_light/color", msg);
+
+    msg[0] = (state ? '1' : '0');
+    msg[1] = 0; // String end
+
+    client.publish("outPoolservice/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 /*------------------------ end of interface.h------------------------------------*/
