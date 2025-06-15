@@ -109,7 +109,7 @@ void heat_pump(bool option)
     client.publish("outPoolservice/heat_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void pool_light(char state)
+void pool_light(char state) // turns the LED stripes on/off
 {
     static bool test = false;
     if (state == 116)
@@ -142,7 +142,7 @@ void pool_light(char state)
     client.publish("outPoolservice/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void pool_light(uint8_t r, uint8_t g, uint8_t b, char state)
+void pool_light(uint8_t r, uint8_t g, uint8_t b, char state) // Choose colors
 {
     Serial.printf("Pool Light Colours: %d", state);
     Serial.println();
@@ -162,66 +162,42 @@ void pool_light(uint8_t r, uint8_t g, uint8_t b, char state)
     client.publish("outPoolservice/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void color_gardient()
+void color_gardient(char state)
 {
     uint8_t r = 0;
     uint8_t g;
     uint8_t b;
-    static uint8_t step = 0;
     uint16_t gradient_rate = 1000;
-    uint16_t gradient_step = 0;
+    static unsigned long lastMillis = 0;
+    static int8_t i = 0;
 
-    unsigned long lastMillis = millis();
-    if (lastMillis - millis() >= gradient_rate)
+    while (true)
     {
-        switch (step)
+        if (millis() - lastMillis >= gradient_rate)
         {
-        case 0:
-            g = 255;
-            b = 0;
-            step++;
-        case 1:
-            g = 230;
-            b = 25;
-            step++;
-        case 2:
-            g = 204;
-            b = 51;
-            step++;
-        case 3:
-            g = 179;
-            b = 76;
-            step++;
-        case 4:
-            g = 153;
-            b = 102;
-            step++;
-        case 5:
-            g = 128;
-            b = 128;
-            step++;
-        case 6:
-            g = 102;
-            b = 153;
-            step++;
-        case 7:
-            g = 76;
-            b = 179;
-            step++;
-        case 8:
-            g = 51;
-            b = 204;
-            step++;
-        case 9:
-            g = 25;
-            b = 230;
-            step++;
-        case 10:
-            g = 0;
-            b = 255;
-            step++;
+            for (i = 0; i <= 9; i += 1)
+            {
+                g = 2.55 * (100 - (10 * i));
+                b = (2.55 * 100) - (2.55 * (100 - (10 * i)));
+                Serial.printf("LED forward r:%d, g:%d, b: %d", r, g, b);
+                Serial.println();
+            }
+
+            for (i = 9; i >= 0; i--)
+            {
+                g = 2.55 * (100 - (10 * i));
+                b = (2.55 * 100) - (2.55 * (100 - (10 * i)));
+                Serial.printf("LED back r:%d, g:%d, b: %d", r, g, b);
+                Serial.println();
+            }
+            lastMillis = millis();
         }
     }
+
+    msg[0] = (state ? '1' : '0');
+    msg[1] = 0; // String end
+
+    client.publish("outPoolservice/pool_light/gardient", msg);
 }
 
 /*------------------------ end of interface.h------------------------------------*/

@@ -171,17 +171,24 @@ void callback(char *topic, byte *payload, unsigned int length)
         topicStr.remove(0, topicStr.indexOf('/') + 1); // delete pool_light from topic
         rootStr = topicStr.substring(0, topicStr.indexOf('/'));
 
-        Serial.print("RootState - ");Serial.println(rootStr);
+        Serial.print("RootState - ");
+        Serial.println(rootStr);
 
         if (rootStr == "state")
         {
           pool_light((char)payload[0]);
           return;
         }
+        if (rootStr == "gardient")
+        {
+          color_gardient((char)payload[0]);
+          return;
+        }
         if (rootStr == "colors")
         {
           topicStr.remove(0, topicStr.indexOf('/') + 1); // delete colors from topic
-          if (topicStr == "rgb"){ // should be the rest
+          if (topicStr == "rgb")
+          { // should be the rest
             DeserializationError error = deserializeJson(doc, payload);
 
             if (error)
@@ -378,7 +385,7 @@ void loop()
 
     lastMillis = millis();
   }
-   client.publish("outGarden/temperature", String(MODEL.tempC).c_str());
+  client.publish("outGarden/temperature", String(MODEL.tempC).c_str());
   // client.publish("outGarden/pool_pump/state", String(MODEL.interface.pump_state).c_str());
   // client.publish("outGarden/valve/state", String(MODEL.interface.valve_state).c_str());
 
