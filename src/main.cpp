@@ -181,7 +181,7 @@ void callback(char *topic, byte *payload, unsigned int length)
         }
         if (rootStr == "gardient")
         {
-          color_gardient((char)payload[0]);
+          color_gradient((char)payload[0]);
           return;
         }
         if (rootStr == "colors")
