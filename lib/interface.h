@@ -116,8 +116,7 @@ void pool_light(char state) // turns the LED stripes on/off
 {
     if (state == '1')
     {
-        // Serial.println("LED stripes ON");
-        // Serial.printf("Pool Light R:%d, G:%d, B:%d", _r, _g, _b);
+        Serial.println("LED stripes ON");
         analogWrite(LED_STRIPE_RED, 255 - _r);
         analogWrite(LED_STRIPE_GREEN, 255 - _g);
         analogWrite(LED_STRIPE_BLUE, 255 - _b);
@@ -137,8 +136,6 @@ void pool_light(char state) // turns the LED stripes on/off
 void pool_light(uint8_t r, uint8_t g, uint8_t b, char state = '1') // Choose colors
 {
     Serial.printf("Pool Light Colours: %d", state);
-    Serial.println();
-
     Serial.printf("Pool Light R:%d, G:%d, B:%d", r, g, b);
     _r = r;
     _g = g;
@@ -158,8 +155,8 @@ void pool_light(uint8_t r, uint8_t g, uint8_t b, char state = '1') // Choose col
 void set_gradient_rate(uint16_t rate)
 {
     gradient_rate = rate;
-    Serial.println(rate);
-    sprintf(msg, "{ \"value\":%d}", rate);
+    Serial.printf("\n\rGradient rate: %i", rate);
+    sprintf(msg, "{ \"gradiant_value\":%d}", rate);
     client.publish("outPoolservice/pool_light/gradient_rate", msg);
 } /*--------------------------------------------------------------------------*/
 
@@ -188,16 +185,18 @@ void color_gradient_loop()
 
     if (loop_state && (millis() - lastMillis >= gradient_rate))
     {
-        Serial.println("Gradient loop");
+     //   Serial.println("Gradient loop");
         lastMillis = millis();
 
         if (gradient_up)
         {
-            Serial.println("Gradient up");
+            //Serial.println("Gradient up");
             if (_b < 255)
             {
                 _b++;
                 _g--;
+                Serial.printf("\n\rblue: %i, green: %i ", _b, _g);
+//                sprintf(msg, "{ r :%d, g :%d, b :%d }", _r, _g, _b);
             }
             else
             {
@@ -208,16 +207,19 @@ void color_gradient_loop()
         { // down
             if (_b > 0)
             {
-                Serial.println("Gradient down");
                 _b--;
                 _g++;
+                Serial.printf("n\r\blue: %i, green: %i ", _b, _g);
+ //               sprintf(msg, "{ r :%d, g :%d, b :%d }", _r, _g, _b);
             }
             else
             {
                 gradient_up = true;
             }
         }
-        pool_light('1');
+        
+ //       client.publish("inGarden/pool_light/colors/rgb", msg);
+         pool_light('1');
     }
 }
 /*------------------------ end of interface.h------------------------------------*/

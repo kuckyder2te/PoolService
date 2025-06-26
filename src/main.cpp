@@ -186,7 +186,10 @@ void callback(char *topic, byte *payload, unsigned int length)
         }
         if (rootStr == "gradient_rate")
         {
-          set_gradient_rate(atoi((const char*)payload));
+          //Serial.printf("Payload raw: %s", (const char*)payload);
+          uint16_t temp = (atoi((const char*)payload));
+          Serial.printf("\n\rPayload: %i", temp);
+          set_gradient_rate(temp);
           return;
         }
 
