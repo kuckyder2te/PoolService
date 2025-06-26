@@ -179,11 +179,17 @@ void callback(char *topic, byte *payload, unsigned int length)
           pool_light((char)payload[0]);
           return;
         }
-        if (rootStr == "gardient")
+        if (rootStr == "gradient_state")
         {
-          color_gradient((char)payload[0]);
+          set_gradient_loop_state(((char)payload[0]=='0'?false:true));
           return;
         }
+        if (rootStr == "gradient_rate")
+        {
+          set_gradient_rate(atoi((const char*)payload));
+          return;
+        }
+
         if (rootStr == "colors")
         {
           topicStr.remove(0, topicStr.indexOf('/') + 1); // delete colors from topic
@@ -199,7 +205,7 @@ void callback(char *topic, byte *payload, unsigned int length)
             }
             else
             {
-              pool_light(doc["r"], doc["g"], doc["b"], (char)payload[0]);
+              pool_light(doc["r"], doc["g"], doc["b"]);
             }
           }
         }
@@ -258,7 +264,9 @@ void setup()
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
-  Tasks.add<temperature>("temperature")->startFps(1);
+  Tasks.add<temperature>("temperature")
+    ->setClient(&client)
+    ->startFps(1);
 
 } /*--------------------------------------------------------------------------*/
 
@@ -311,6 +319,8 @@ void loop()
     reconnect();
   }
   client.loop();
+
+  color_gradient_loop();
 
   //   ArduinoOTA.handle();             //Rainsensor
   // long now = millis();
@@ -385,7 +395,7 @@ void loop()
 
     lastMillis = millis();
   }
-  client.publish("outGarden/temperature", String(MODEL.tempC).c_str());
+  
   // client.publish("outGarden/pool_pump/state", String(MODEL.interface.pump_state).c_str());
   // client.publish("outGarden/valve/state", String(MODEL.interface.valve_state).c_str());
 

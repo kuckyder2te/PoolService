@@ -19,13 +19,22 @@ DallasTemperature sensors(&oneWire);
 float tempC;    //später ins Model aufnehmen
 
 #include <TaskManager.h>
+#include <PubSubClient.h>
 
 class temperature : public Task::Base
 {
+    PubSubClient* _client;
+    char msg[30];
 public:
     temperature(const String &name)
         : Task::Base(name)
     {
+    }
+
+    temperature *setClient(PubSubClient *client){
+        _client = client;
+
+        return this;
     }
 
     virtual void begin() override
@@ -48,11 +57,12 @@ public:
         // Check if reading was successful
         if (tempC != DEVICE_DISCONNECTED_C)
         {
-    //        Serial.print("Temperature for the device 1 (index 0) is: ");
-     //       Serial.println(tempC);
-            // msg[0] = (option ? '1' : '0');
-            // msg[1] = 0; // String end
-            // client.publish("outPoolservice/naoh_pump/state", msg);
+            // Serial.print("Temperature for the device 1 (index 0) is: ");
+            // Serial.println(MODEL.tempC);
+
+            sprintf(msg, "{ value:%.2f }", MODEL.tempC);
+
+            _client->publish("outGarden/temperature", msg);
      }
         else
         {

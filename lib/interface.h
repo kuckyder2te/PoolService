@@ -23,6 +23,9 @@ namespace interface
 extern char msg[50];
 extern PubSubClient client;
 uint8_t _r, _g, _b;
+bool loop_state = false;
+bool gradient_up = true;
+uint16_t gradient_rate = 100;
 
 void hcl_pump(bool option)
 {
@@ -111,21 +114,10 @@ void heat_pump(bool option)
 
 void pool_light(char state) // turns the LED stripes on/off
 {
-    static bool test = false;
-    if (state == 116)
+    if (state == '1')
     {
-        test = true;
-    }
-    else
-    {
-        test = false;
-    }
-
-    Serial.printf("Pool Light State: %d", state);
-    Serial.println();
-    if (test)
-    {
-        Serial.println("LED stripes ON");
+        // Serial.println("LED stripes ON");
+        // Serial.printf("Pool Light R:%d, G:%d, B:%d", _r, _g, _b);
         analogWrite(LED_STRIPE_RED, 255 - _r);
         analogWrite(LED_STRIPE_GREEN, 255 - _g);
         analogWrite(LED_STRIPE_BLUE, 255 - _b);
@@ -137,12 +129,12 @@ void pool_light(char state) // turns the LED stripes on/off
         analogWrite(LED_STRIPE_GREEN, 255);
         analogWrite(LED_STRIPE_BLUE, 255);
     }
-    msg[0] = (state ? '1' : '0');
-    msg[1] = 0; // String end
+    msg[0] = state; //(state'' ? '1' : '0');
+    msg[1] = 0;     // String end
     client.publish("outPoolservice/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void pool_light(uint8_t r, uint8_t g, uint8_t b, char state) // Choose colors
+void pool_light(uint8_t r, uint8_t g, uint8_t b, char state = '1') // Choose colors
 {
     Serial.printf("Pool Light Colours: %d", state);
     Serial.println();
@@ -154,85 +146,78 @@ void pool_light(uint8_t r, uint8_t g, uint8_t b, char state) // Choose colors
     analogWrite(LED_STRIPE_RED, 255 - _r);
     analogWrite(LED_STRIPE_GREEN, 255 - _g);
     analogWrite(LED_STRIPE_BLUE, 255 - _b);
-    sprintf(msg, "{ r:%d, g:%d, b:%d }", _r, _g, _b);
+    sprintf(msg, "{ \"r\":%d, \"g\":%d, \"b\":%d }", _r, _g, _b);
+
+    // msg[0] = (state ? '1' : '0');
+    // msg[1] = 0; // String end
+
+    client.publish("outPoolservice/colors/rgb", msg);
+    pool_light(state);
+} /*--------------------------------------------------------------------------*/
+
+void set_gradient_rate(uint16_t rate)
+{
+    gradient_rate = rate;
+    Serial.println(rate);
+    sprintf(msg, "{ \"value\":%d}", rate);
+    client.publish("outPoolservice/pool_light/gradient_rate", msg);
+} /*--------------------------------------------------------------------------*/
+
+void set_gradient_loop_state(bool state)
+{
+    loop_state = state;
+    if (state)
+    {
+        _r = 0;
+        _g = 255;
+        _b = 0;
+        gradient_up = true;
+    }
 
     msg[0] = (state ? '1' : '0');
     msg[1] = 0; // String end
+    // sprintf(msg, "{ \"value\":%s}", (state?"true":"false"));
+    client.publish("outPoolservice/pool_light/gradient_state", msg);
 
-    client.publish("outPoolservice/pool_light/state", msg);
+    pool_light(state);
 } /*--------------------------------------------------------------------------*/
 
-bool wait()
+void color_gradient_loop()
 {
-    uint16_t gradient_rate = 1000;
-    static unsigned long lastMillis = 0;
-
-    Serial.println("WAIT");
-
-    if (millis() - lastMillis >= gradient_rate)
-    {
-        lastMillis = millis();
-        return true;
-    }
-} /*--------------------------------------------------------------------------*/
-
-void color_gradient(char state)
-{
-    uint8_t r = 0;
-    uint8_t g;
-    uint8_t b;
-    uint16_t gradient_rate = 1000;
     static unsigned long lastMillis = millis();
-    static uint8_t steps = 255;
-    bool gradient_loop = true;
-    uint8_t count = 0; // nur für Testzwecke.
 
-    Serial.println("Gradient");
-
-    while (gradient_loop)
+    if (loop_state && (millis() - lastMillis >= gradient_rate))
     {
-        count++;
-        for (int i = 0; i <= steps; i += 1)
+        Serial.println("Gradient loop");
+        lastMillis = millis();
+
+        if (gradient_up)
         {
-            if (wait)
+            Serial.println("Gradient up");
+            if (_b < 255)
             {
-                //   g = 2.55 * (100 - (1 * i));
-                g = 255 - i;
-                //   b = (2.55 * 100) - (2.55 * (100 - (1 * i)));
-                b = i;
-                Serial.printf("LED green to blue g:%d, b: %d", g, b);
-                Serial.println();
-                //               analogWrite(LED_STRIPE_RED, 255 - r);
-                analogWrite(LED_STRIPE_GREEN, 255 - g);
-                analogWrite(LED_STRIPE_BLUE, 255 - b);
-                
+                _b++;
+                _g--;
+            }
+            else
+            {
+                gradient_up = false;
             }
         }
-        for (int i = steps; i >= 0; i--)
-        {
-            if (wait)
+        else
+        { // down
+            if (_b > 0)
             {
-                //  g = 2.55 * (100 - (1 * i));
-                g = 255 - i;
-                //  b = (2.55 * 100) - (2.55 * (100 - (1 * i)));
-                b = i;
-                Serial.printf("LED blue to green g:%d, b: %d", g, b);
-                Serial.println();
-                //               analogWrite(LED_STRIPE_RED, 255 - r);
-                analogWrite(LED_STRIPE_GREEN, 255 - g);
-                analogWrite(LED_STRIPE_BLUE, 255 - b);
-                
+                Serial.println("Gradient down");
+                _b--;
+                _g++;
+            }
+            else
+            {
+                gradient_up = true;
             }
         }
-        if (count >= 255)
-        {
-            gradient_loop = false;
-        }
+        pool_light('1');
     }
-
-    msg[0] = (state ? '1' : '0');
-    msg[1] = 0; // String end
-
-    client.publish("outPoolservice/pool_light/gradient", msg);
 }
 /*------------------------ end of interface.h------------------------------------*/
