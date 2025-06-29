@@ -399,7 +399,7 @@ void loop()
     lastMillis = millis();
   }
   
-  // client.publish("outGarden/pool_pump/state", String(MODEL.interface.pump_state).c_str());
+  client.publish("outGarden/temperature", String(MODEL.tempC ).c_str());
   // client.publish("outGarden/valve/state", String(MODEL.interface.valve_state).c_str());
 
 } /*--------------------------------------------------------------------------*/

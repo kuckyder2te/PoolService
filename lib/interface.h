@@ -7,7 +7,6 @@
 */
 
 #include <Arduino.h>
-// #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include "..\lib\def.h"
 
@@ -136,7 +135,7 @@ void pool_light(char state) // turns the LED stripes on/off
 void pool_light(uint8_t r, uint8_t g, uint8_t b, char state = '1') // Choose colors
 {
     Serial.printf("Pool Light Colours: %d", state);
-    Serial.printf("Pool Light R:%d, G:%d, B:%d", r, g, b);
+    Serial.printf("\n\rPool Light R:%d, G:%d, B:%d", r, g, b);
     _r = r;
     _g = g;
     _b = b;
@@ -195,8 +194,11 @@ void color_gradient_loop()
             {
                 _b++;
                 _g--;
-                Serial.printf("\n\rblue: %i, green: %i ", _b, _g);
-//                sprintf(msg, "{ r :%d, g :%d, b :%d }", _r, _g, _b);
+                Serial.printf("\n\rblue: %i, green: %i\n\r", _b, _g);
+                sprintf(msg, "{ r :%d, g :%d, b :%d }", _r, _g, _b);
+                // Serial.println(msg);
+                // delay(2000);
+                client.publish("outPoolservice/pool_lights/rgb", msg);
             }
             else
             {
