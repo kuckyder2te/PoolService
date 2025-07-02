@@ -189,7 +189,6 @@ void color_gradient_loop()
 
         if (gradient_up)
         {
-            //Serial.println("Gradient up");
             if (_b < 255)
             {
                 _b++;
