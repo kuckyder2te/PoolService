@@ -195,8 +195,6 @@ void color_gradient_loop()
                 _g--;
                 Serial.printf("\n\rblue: %i, green: %i\n\r", _b, _g);
                 sprintf(msg, "{ r :%d, g :%d, b :%d }", _r, _g, _b);
-                // Serial.println(msg);
-                // delay(2000);
                 client.publish("outPoolservice/pool_lights/rgb", msg);
             }
             else
