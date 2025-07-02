@@ -216,8 +216,6 @@ void color_gradient_loop()
                 gradient_up = true;
             }
         }
-        
- //       client.publish("inGarden/pool_light/colors/rgb", msg);
          pool_light('1');
     }
 }
