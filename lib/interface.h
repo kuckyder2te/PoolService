@@ -26,6 +26,8 @@ bool loop_state = false;
 bool gradient_up = true;
 uint16_t gradient_rate = 100;
 
+void set_gradient_loop_state(bool);
+
 void hcl_pump(bool option)
 {
     if (option)
@@ -40,7 +42,7 @@ void hcl_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0;
-    client.publish("outPoolservice/hcl_pump/state", msg);
+    client.publish("outGarden/hcl_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void naoh_pump(bool option)
@@ -57,7 +59,7 @@ void naoh_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outPoolservice/naoh_pump/state", msg);
+    client.publish("outGarden/naoh_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void clean_pump(bool option)
@@ -74,7 +76,7 @@ void clean_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outPoolservice/clean_pump/state", msg);
+    client.publish("outGarden/clean_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void pont_pump(bool option)
@@ -91,7 +93,7 @@ void pont_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outPoolservice/pont_pump/state", msg);
+    client.publish("outGarden/pont_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void heat_pump(bool option)
@@ -108,12 +110,12 @@ void heat_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outPoolservice/heat_pump/state", msg);
+    client.publish("outGarden/heat_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void pool_light(char state) // turns the LED stripes on/off
+void pool_light(bool state, bool silent = false) // turns the LED stripes on/off
 {
-    if (state == '1')
+    if (state)
     {
         Serial.println("LED stripes ON");
         analogWrite(LED_STRIPE_RED, 255 - _r);
@@ -127,12 +129,13 @@ void pool_light(char state) // turns the LED stripes on/off
         analogWrite(LED_STRIPE_GREEN, 255);
         analogWrite(LED_STRIPE_BLUE, 255);
     }
-    msg[0] = state; //(state'' ? '1' : '0');
+    msg[0] = (state? '1' : '0');
     msg[1] = 0;     // String end
-    client.publish("outPoolservice/pool_light/state", msg);
+    if(!silent)
+        client.publish("outGarden/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void pool_light(uint8_t r, uint8_t g, uint8_t b, char state = '1') // Choose colors
+void pool_light(uint8_t r, uint8_t g, uint8_t b, bool state = true) // Choose colors
 {
     Serial.printf("Pool Light Colours: %d", state);
     Serial.printf("\n\rPool Light R:%d, G:%d, B:%d", r, g, b);
@@ -147,7 +150,7 @@ void pool_light(uint8_t r, uint8_t g, uint8_t b, char state = '1') // Choose col
     // msg[0] = (state ? '1' : '0');
     // msg[1] = 0; // String end
 
-    client.publish("outPoolservice/colors/rgb", msg);
+    client.publish("outGarden/colors/rgb", msg);
     pool_light(state);
 } /*--------------------------------------------------------------------------*/
 
@@ -156,7 +159,7 @@ void set_gradient_rate(uint16_t rate)
     gradient_rate = rate;
     Serial.printf("\n\rGradient rate: %i", rate);
     sprintf(msg, "{ \"gradiant_value\":%d}", rate);
-    client.publish("outPoolservice/pool_light/gradient_rate", msg);
+    client.publish("outGarden/pool_light/gradient_rate", msg);
 } /*--------------------------------------------------------------------------*/
 
 void set_gradient_loop_state(bool state)
@@ -173,7 +176,7 @@ void set_gradient_loop_state(bool state)
     msg[0] = (state ? '1' : '0');
     msg[1] = 0; // String end
     // sprintf(msg, "{ \"value\":%s}", (state?"true":"false"));
-    client.publish("outPoolservice/pool_light/gradient_state", msg);
+    client.publish("outGarden/pool_light/gradient_state", msg);
 
     pool_light(state);
 } /*--------------------------------------------------------------------------*/
@@ -191,11 +194,11 @@ void color_gradient_loop()
         {
             if (_b < 255)
             {
-                _b++;
-                _g--;
+                //_b++;
+                //_g--;
+                _b+=5;
+                _g-=5;
                 Serial.printf("\n\rblue: %i, green: %i\n\r", _b, _g);
-                sprintf(msg, "{ r :%d, g :%d, b :%d }", _r, _g, _b);
-                client.publish("outPoolservice/pool_lights/rgb", msg);
             }
             else
             {
@@ -206,17 +209,21 @@ void color_gradient_loop()
         { // down
             if (_b > 0)
             {
-                _b--;
-                _g++;
+                // _b--;
+                // _g++;
+                _b-=5;
+                _g+=5;
                 Serial.printf("n\r\blue: %i, green: %i ", _b, _g);
- //               sprintf(msg, "{ r :%d, g :%d, b :%d }", _r, _g, _b);
             }
             else
             {
                 gradient_up = true;
             }
+            
         }
-         pool_light('1');
+        sprintf(msg, "{ \"r\":%d, \"g\":%d, \"b\":%d }", _r, _g, _b);
+        client.publish("outGarden/colors/rgb", msg);
+        pool_light(true,true);
     }
 }
 /*------------------------ end of interface.h------------------------------------*/

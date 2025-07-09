@@ -62,7 +62,7 @@ public:
 
             sprintf(msg, "{ value:%.2f }", MODEL.tempC);
 
-            _client->publish("outPoolservice/temperature", msg);
+            _client->publish("outGarden/temperature", msg);
             Serial.print("temp   ");Serial.println(MODEL.tempC);
      }
         else

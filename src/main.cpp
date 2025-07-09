@@ -176,7 +176,7 @@ void callback(char *topic, byte *payload, unsigned int length)
 
         if (rootStr == "state")
         {
-          pool_light((char)payload[0]);
+          pool_light(((char)payload[0]=='0'?false:true));
           return;
         }
         if (rootStr == "gradient_state")
@@ -187,6 +187,7 @@ void callback(char *topic, byte *payload, unsigned int length)
         if (rootStr == "gradient_rate")
         {
           //Serial.printf("Payload raw: %s", (const char*)payload);
+          payload[length] = 0;
           uint16_t temp = (atoi((const char*)payload));
           Serial.printf("\n\rPayload: %i", temp);
           set_gradient_rate(temp);
@@ -271,6 +272,10 @@ void setup()
     ->setClient(&client)
     ->startFps(1);
 
+    pool_light(false);
+    set_gradient_rate(500);
+    set_gradient_loop_state(false);
+
 } /*--------------------------------------------------------------------------*/
 
 void reconnect()
@@ -339,7 +344,7 @@ void loop()
     {
       if (!clean_err)
       {
-        client.publish("outPoolservice/clean_error", "true");
+        client.publish("outGarden/clean_error", "true");
       }
       clean_err = true;
     }
@@ -347,7 +352,7 @@ void loop()
     {
       if (clean_err)
       {
-        client.publish("outPoolservice/clean_error", "false");
+        client.publish("outGarden/clean_error", "false");
       }
       clean_err = false;
     }
@@ -356,7 +361,7 @@ void loop()
     {
       if (!hcl_err)
       {
-        client.publish("outPoolservice/hcl_error", "true");
+        client.publish("outGarden/hcl_error", "true");
       }
       hcl_err = true;
     }
@@ -364,7 +369,7 @@ void loop()
     {
       if (hcl_err)
       {
-        client.publish("outPoolservice/hcl_error", "false");
+        client.publish("outGarden/hcl_error", "false");
       }
       hcl_err = false;
     }
@@ -373,7 +378,7 @@ void loop()
     {
       if (!naoh_err)
       {
-        client.publish("outPoolservice/naoh_error", "true");
+        client.publish("outGarden/naoh_error", "true");
       }
       naoh_err = true;
     }
@@ -381,7 +386,7 @@ void loop()
     {
       if (naoh_err)
       {
-        client.publish("outPoolservice/naoh_error", "false");
+        client.publish("outGarden/naoh_error", "false");
       }
       naoh_err = false;
     }
@@ -398,8 +403,4 @@ void loop()
 
     lastMillis = millis();
   }
-  
-  client.publish("outGarden/temperature", String(MODEL.tempC ).c_str());
-  // client.publish("outGarden/valve/state", String(MODEL.interface.valve_state).c_str());
-
 } /*--------------------------------------------------------------------------*/
