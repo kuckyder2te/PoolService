@@ -9,7 +9,6 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 
 #include <Arduino.h>
 #include <TaskManager.h>
-// #include <ESP8266WiFi.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
@@ -39,7 +38,6 @@ unsigned long lastReconnectAttempt = 0;
 void setup_wifi()
 {
   delay(10);
-  // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -188,7 +186,6 @@ void callback(char *topic, byte *payload, unsigned int length)
         }
         if (rootStr == "gradient_rate")
         {
-          // Serial.printf("Payload raw: %s", (const char*)payload);
           payload[length] = 0;
           uint16_t temp = (atoi((const char *)payload));
           Serial.printf("\n\rPayload: %i", temp);
@@ -280,40 +277,6 @@ void setup()
 
 } /*--------------------------------------------------------------------------*/
 
-// void reconnect()
-// {
-//   // Loop until we're reconnected
-//   while (!client.connected())
-//   {
-//     Serial.print("Attempting MQTT connection...");
-//     // Create a random client ID
-//     String clientId = "ESP8266Client-";
-//     clientId += String(random(0xffff), HEX);
-//     // Attempt to connect
-//     if (client.connect(clientId.c_str()))
-//     {
-//       Serial.println("connected");
-//       // Once connected, publish an announcement...
-//       client.publish("outGarden", "Garden control");
-//       // ... and resubscribe
-//       client.subscribe("inGarden/#");
-//       /*
-//       client.subscribed zu allen Nachrichten wie z.B.
-//       inPump/Status
-//       inPump/Egon
-//       inPump/Willy
-// */
-//     }
-//     else
-//     {
-//       Serial.print("failed, rc=");
-//       Serial.print(client.state());
-//       Serial.println(" try again in 5 seconds");
-//       delay(5000);
-//     }
-//   }
-// } /*--------------------------------------------------------------------------*/
-
 bool reconnect()
 {
   Serial.print("Attempting MQTT connection...");
@@ -353,12 +316,6 @@ void loop()
     WiFi.reconnect();
     previousMillis = millis();
   }
-
-  // if (!client.connected())
-  // {
-  //   reconnect();
-  // }
-  // client.loop();
 
   if (!client.connected())
   {
