@@ -34,6 +34,8 @@ unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE];
 
+unsigned long lastReconnectAttempt = 0;
+
 void setup_wifi()
 {
   delay(10);
@@ -176,19 +178,19 @@ void callback(char *topic, byte *payload, unsigned int length)
 
         if (rootStr == "state")
         {
-          pool_light(((char)payload[0]=='0'?false:true));
+          pool_light(((char)payload[0] == '0' ? false : true));
           return;
         }
         if (rootStr == "gradient_state")
         {
-          set_gradient_loop_state(((char)payload[0]=='0'?false:true));
+          set_gradient_loop_state(((char)payload[0] == '0' ? false : true));
           return;
         }
         if (rootStr == "gradient_rate")
         {
-          //Serial.printf("Payload raw: %s", (const char*)payload);
+          // Serial.printf("Payload raw: %s", (const char*)payload);
           payload[length] = 0;
-          uint16_t temp = (atoi((const char*)payload));
+          uint16_t temp = (atoi((const char *)payload));
           Serial.printf("\n\rPayload: %i", temp);
           set_gradient_rate(temp);
           return;
@@ -269,46 +271,67 @@ void setup()
   client.setCallback(callback);
 
   Tasks.add<temperature>("temperature")
-    ->setClient(&client)
-    ->startFps(1);
+      ->setClient(&client)
+      ->startFps(1);
 
-    pool_light(false);
-    set_gradient_rate(500);
-    set_gradient_loop_state(false);
+  pool_light(false);
+  set_gradient_rate(500);
+  set_gradient_loop_state(false);
 
 } /*--------------------------------------------------------------------------*/
 
-void reconnect()
+// void reconnect()
+// {
+//   // Loop until we're reconnected
+//   while (!client.connected())
+//   {
+//     Serial.print("Attempting MQTT connection...");
+//     // Create a random client ID
+//     String clientId = "ESP8266Client-";
+//     clientId += String(random(0xffff), HEX);
+//     // Attempt to connect
+//     if (client.connect(clientId.c_str()))
+//     {
+//       Serial.println("connected");
+//       // Once connected, publish an announcement...
+//       client.publish("outGarden", "Garden control");
+//       // ... and resubscribe
+//       client.subscribe("inGarden/#");
+//       /*
+//       client.subscribed zu allen Nachrichten wie z.B.
+//       inPump/Status
+//       inPump/Egon
+//       inPump/Willy
+// */
+//     }
+//     else
+//     {
+//       Serial.print("failed, rc=");
+//       Serial.print(client.state());
+//       Serial.println(" try again in 5 seconds");
+//       delay(5000);
+//     }
+//   }
+// } /*--------------------------------------------------------------------------*/
+
+bool reconnect()
 {
-  // Loop until we're reconnected
-  while (!client.connected())
+  Serial.print("Attempting MQTT connection...");
+  String clientId = "ESP32Client-";
+  clientId += String(random(0xffff), HEX);
+
+  if (client.connect(clientId.c_str()))
   {
-    Serial.print("Attempting MQTT connection...");
-    // Create a random client ID
-    String clientId = "ESP8266Client-";
-    clientId += String(random(0xffff), HEX);
-    // Attempt to connect
-    if (client.connect(clientId.c_str()))
-    {
-      Serial.println("connected");
-      // Once connected, publish an announcement...
-      client.publish("outGarden", "Garden control");
-      // ... and resubscribe
-      client.subscribe("inGarden/#");
-      /*
-      client.subscribed zu allen Nachrichten wie z.B.
-      inPump/Status
-      inPump/Egon
-      inPump/Willy
-*/
-    }
-    else
-    {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      delay(5000);
-    }
+    Serial.println("connected");
+    client.publish("outGarden", "Garden control");
+    client.subscribe("inGarden/#");
+    return true;
+  }
+  else
+  {
+    Serial.print("failed, rc=");
+    Serial.print(client.state());
+    return false;
   }
 } /*--------------------------------------------------------------------------*/
 
@@ -320,13 +343,41 @@ void loop()
   static unsigned long lastMillis = millis();
   uint16_t delayTime = 1000; // 10 sec
 
-  Tasks.update();
+  static unsigned long previousMillis = millis();
+  // if WiFi is down, try reconnecting
+  if ((WiFi.status() != WL_CONNECTED) && (millis() - previousMillis >= 30000))
+  {
+    Serial.print(millis());
+    Serial.println("Reconnecting to WiFi...");
+    WiFi.disconnect();
+    WiFi.reconnect();
+    previousMillis = millis();
+  }
+
+  // if (!client.connected())
+  // {
+  //   reconnect();
+  // }
+  // client.loop();
 
   if (!client.connected())
   {
-    reconnect();
+    unsigned long now = millis();
+    if (now - lastReconnectAttempt > 5000)
+    {
+      lastReconnectAttempt = now;
+      if (reconnect())
+      {
+        lastReconnectAttempt = 0;
+      }
+    }
   }
-  client.loop();
+  else
+  {
+    client.loop();
+  }
+
+  Tasks.update();
 
   color_gradient_loop();
 
@@ -361,7 +412,7 @@ void loop()
     {
       if (!hcl_err)
       {
-        client.publish("outGarden/hcl_error", "true");
+        client.publish("c", "true");
       }
       hcl_err = true;
     }
