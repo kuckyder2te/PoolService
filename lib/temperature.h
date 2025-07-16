@@ -60,7 +60,7 @@ public:
             // Serial.print("Temperature for the device 1 (index 0) is: ");
             // Serial.println(MODEL.tempC);
 
-            sprintf(msg, "{ \"value\":%.2f }", MODEL.tempC);
+            sprintf(msg, "{ \"value\":%.1f }", MODEL.tempC);
 
             _client->publish("outGarden/temperature", msg);
             //Serial.print("temp   ");Serial.println(MODEL.tempC);
