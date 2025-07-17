@@ -19,6 +19,7 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 #include "..\lib\secrets.h"
 #include "..\lib\def.h"
 #include "..\lib\temperature.h"
+#include "..\lib\pump_error.h"
 
 // #include <ArduinoOTA.h>
 
