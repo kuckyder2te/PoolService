@@ -270,7 +270,7 @@ void setup()
 
   Tasks.add<temperature>("temperature")
       ->setClient(&client)
-      ->startFps(1);
+      ->startFps(0.017); // /Minute
 
   pool_light(false);
   set_gradient_rate(500);
@@ -346,7 +346,7 @@ void loop()
   //   lastMsg = now;
   //   getRainValues(); // Rainsensor
   // }
-
+/*
   if (millis() - lastMillis >= delayTime)
   {
     if (digitalRead(CLEAN_MON) == digitalRead(CLEAN_PUMP))
@@ -412,4 +412,5 @@ void loop()
 
     lastMillis = millis();
   }
+    */
 } /*--------------------------------------------------------------------------*/
