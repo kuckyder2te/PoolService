@@ -1,5 +1,5 @@
 /*
-    File name: pH.h
+    File name: pumo_error.h
     Date: 2025.07.16
     Author: Wilhelm Kuckelsberg
     Description: pH measurement
@@ -40,12 +40,12 @@ public:
 
     virtual void update() override
     {
-        static unsigned long lastMillis = millis();
+    //    static unsigned long lastMillis = millis();
         static bool clean_err = true;
         static bool hcl_err = true;
         static bool naoh_err = true;
 
-        if (millis() - lastMillis >= delayTime)
+    //    if (millis() - lastMillis >= delayTime)
         {
             if (digitalRead(CLEAN_MON) == digitalRead(CLEAN_PUMP))
             {
@@ -108,7 +108,7 @@ public:
             //   Serial.println("Clear pump switched off");
             // }
 
-            lastMillis = millis();
+     //       lastMillis = millis();
         }
     }
 };

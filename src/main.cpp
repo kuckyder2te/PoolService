@@ -9,6 +9,9 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 
 #include <Arduino.h>
 #include <TaskManager.h>
+// #include <ESP8266WiFi.h>
+// #include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <Wire.h>
@@ -20,8 +23,6 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 #include "..\lib\def.h"
 #include "..\lib\temperature.h"
 #include "..\lib\pump_error.h"
-
-// #include <ArduinoOTA.h>
 
 const char *ssid = SID;
 const char *password = PW;
@@ -35,6 +36,47 @@ unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
 
 unsigned long lastReconnectAttempt = 0;
+
+bool state_led;
+
+// ----- OTA --------
+#include <ElegantOTA.h>
+
+AsyncWebServer server(80);
+
+unsigned long ota_progress_millis = 0;
+
+void onOTAStart()
+{
+  // Log when OTA has started
+  Serial.println("OTA update started!");
+  // <Add your own code here>
+}
+
+void onOTAProgress(size_t current, size_t final)
+{
+  // Log every 1 second
+  if (millis() - ota_progress_millis > 1000)
+  {
+    ota_progress_millis = millis();
+    Serial.printf("OTA Progress Current: %u bytes, Final: %u bytes\n", current, final);
+  }
+}
+
+void onOTAEnd(bool success)
+{
+  // Log when OTA has finished
+  if (success)
+  {
+    Serial.println("OTA update finished successfully!");
+  }
+  else
+  {
+    Serial.println("There was an error during OTA update!");
+  }
+  // <Add your own code here>
+}
+// ----- OTA --------
 
 void setup_wifi()
 {
@@ -251,6 +293,9 @@ void setup()
   pinMode(RELAY_3, OUTPUT);
   digitalWrite(RELAY_3, LOW);
 
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+
   // pinMode(RELAY_1, OUTPUT); // not in used
   // digitalWrite(RELAY_1, LOW);
 
@@ -271,6 +316,20 @@ void setup()
   Tasks.add<temperature>("temperature")
       ->setClient(&client)
       ->startFps(0.017); // /Minute
+
+  Tasks.add<pumpError>("pumpError")
+      ->setClient(&client)
+      ->startFps(1); // /Minute
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+            { request->send(200, "text/plain", "Pool-Service"); });
+
+  ElegantOTA.begin(&server); // Start ElegantOTA
+  ElegantOTA.onStart(onOTAStart);
+  ElegantOTA.onProgress(onOTAProgress);
+  ElegantOTA.onEnd(onOTAEnd);
+  server.begin();
+  Serial.println("HTTP server started");
 
   pool_light(false);
   set_gradient_rate(500);
@@ -308,6 +367,8 @@ void loop()
   uint16_t delayTime = 1000; // 10 sec
 
   static unsigned long previousMillis = millis();
+
+  ElegantOTA.loop();
   // if WiFi is down, try reconnecting
   if ((WiFi.status() != WL_CONNECTED) && (millis() - previousMillis >= 30000))
   {
@@ -337,6 +398,14 @@ void loop()
 
   Tasks.update();
 
+  //  static long lastMillis = 0;
+  if (lastMillis - millis() >= 1000)
+  {
+    digitalWrite(LED_BUILTIN, state_led);
+    state_led = !state_led;
+    lastMillis = millis();
+  }
+
   color_gradient_loop();
 
   //   ArduinoOTA.handle();             //Rainsensor
@@ -346,71 +415,71 @@ void loop()
   //   lastMsg = now;
   //   getRainValues(); // Rainsensor
   // }
-/*
-  if (millis() - lastMillis >= delayTime)
-  {
-    if (digitalRead(CLEAN_MON) == digitalRead(CLEAN_PUMP))
+  /*
+    if (millis() - lastMillis >= delayTime)
     {
-      if (!clean_err)
+      if (digitalRead(CLEAN_MON) == digitalRead(CLEAN_PUMP))
       {
-        client.publish("outGarden/clean_error", "true");
+        if (!clean_err)
+        {
+          client.publish("outGarden/clean_error", "true");
+        }
+        clean_err = true;
       }
-      clean_err = true;
-    }
-    else
-    {
-      if (clean_err)
+      else
       {
-        client.publish("outGarden/clean_error", "false");
+        if (clean_err)
+        {
+          client.publish("outGarden/clean_error", "false");
+        }
+        clean_err = false;
       }
-      clean_err = false;
-    }
 
-    if (digitalRead(HCL_MON) == digitalRead(HCL_PUMP))
-    {
-      if (!hcl_err)
+      if (digitalRead(HCL_MON) == digitalRead(HCL_PUMP))
       {
-        client.publish("c", "true");
+        if (!hcl_err)
+        {
+          client.publish("c", "true");
+        }
+        hcl_err = true;
       }
-      hcl_err = true;
-    }
-    else
-    {
-      if (hcl_err)
+      else
       {
-        client.publish("outGarden/hcl_error", "false");
+        if (hcl_err)
+        {
+          client.publish("outGarden/hcl_error", "false");
+        }
+        hcl_err = false;
       }
-      hcl_err = false;
-    }
 
-    if (digitalRead(NAOH_MON) == digitalRead(NAOH_PUMP))
-    {
-      if (!naoh_err)
+      if (digitalRead(NAOH_MON) == digitalRead(NAOH_PUMP))
       {
-        client.publish("outGarden/naoh_error", "true");
+        if (!naoh_err)
+        {
+          client.publish("outGarden/naoh_error", "true");
+        }
+        naoh_err = true;
       }
-      naoh_err = true;
-    }
-    else
-    {
-      if (naoh_err)
+      else
       {
-        client.publish("outGarden/naoh_error", "false");
+        if (naoh_err)
+        {
+          client.publish("outGarden/naoh_error", "false");
+        }
+        naoh_err = false;
       }
-      naoh_err = false;
+
+      // bool clear_err = digitalRead(CLEAN_MON);
+      // if (clear_err)
+      // {
+      //   Serial.println("Clear alert");
+      // }
+      // else
+      // {
+      //   Serial.println("Clear pump switched off");
+      // }
+
+      lastMillis = millis();
     }
-
-    // bool clear_err = digitalRead(CLEAN_MON);
-    // if (clear_err)
-    // {
-    //   Serial.println("Clear alert");
-    // }
-    // else
-    // {
-    //   Serial.println("Clear pump switched off");
-    // }
-
-    lastMillis = millis();
-  }
-    */
+      */
 } /*--------------------------------------------------------------------------*/
