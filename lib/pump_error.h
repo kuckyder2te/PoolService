@@ -98,17 +98,6 @@ public:
                 naoh_err = false;
             }
 
-            // bool clear_err = digitalRead(CLEAN_MON);
-            // if (clear_err)
-            // {
-            //   Serial.println("Clear alert");
-            // }
-            // else
-            // {
-            //   Serial.println("Clear pump switched off");
-            // }
-
-     //       lastMillis = millis();
         }
     }
 };
