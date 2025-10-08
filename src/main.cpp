@@ -1,8 +1,8 @@
 /*
 File name: main.cpp
-Author:    Stefan Scholz / Wilhel Kuckelsberg
+Author:    Stefan Scholz / Wilhelm Kuckelsberg
 Date:      2024.10.10
-Project:   Pool Control
+Project:   Pool Service
 
 https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Regensensor
 */
@@ -17,7 +17,7 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 #include <Wire.h>
 #include <DallasTemperature.h>
 #include <ArduinoJson.h>
-#include "..\lib\model.h"
+//#include "..\lib\model.h"
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
 #include "..\lib\def.h"
@@ -39,7 +39,7 @@ unsigned long lastReconnectAttempt = 0;
 
 bool state_led;
 
-// ----- OTA --------
+// ----- OTA begin--------
 #include <ElegantOTA.h>
 
 AsyncWebServer server(80);
@@ -50,7 +50,6 @@ void onOTAStart()
 {
   // Log when OTA has started
   Serial.println("OTA update started!");
-  // <Add your own code here>
 }
 
 void onOTAProgress(size_t current, size_t final)
@@ -74,9 +73,8 @@ void onOTAEnd(bool success)
   {
     Serial.println("There was an error during OTA update!");
   }
-  // <Add your own code here>
 }
-// ----- OTA --------
+// ----- OTA end --------
 
 void setup_wifi()
 {
@@ -164,15 +162,15 @@ void callback(char *topic, byte *payload, unsigned int length)
           break;
         }
       }
-      else if (rootStr == "clean_pump")
+      else if (rootStr == "algizid_pump")
       {
         switch ((char)payload[0])
         {
         case '0':
-          clean_pump(false);
+          algizid_pump(false);
           break;
         case '1':
-          clean_pump(true);
+          algizid_pump(true);
           break;
         default:
           // Warning !! Undefined payload or not 1/0
@@ -281,11 +279,11 @@ void setup()
   pinMode(NAOH_MON, INPUT);
   digitalWrite(NAOH_MON, LOW);
 
-  pinMode(CLEAN_PUMP, OUTPUT);
-  digitalWrite(CLEAN_PUMP, LOW);
+  pinMode(ALGIZID_PUMP, OUTPUT);
+  digitalWrite(ALGIZID_PUMP, LOW);
 
-  pinMode(CLEAN_MON, INPUT);
-  digitalWrite(CLEAN_MON, LOW);
+  pinMode(ALGIZID_MON, INPUT);
+  digitalWrite(ALGIZID_MON, LOW);
 
   pinMode(RELAY_2, OUTPUT);
   digitalWrite(RELAY_2, LOW);
@@ -296,9 +294,6 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
-  // pinMode(RELAY_1, OUTPUT); // not in used
-  // digitalWrite(RELAY_1, LOW);
-
   Serial.println();
   Serial.println("Poolservice inkl. pH, Pool Light, Pool erwärmen und Teichpumpe");
   String thisBoard = ARDUINO_BOARD;
@@ -306,27 +301,35 @@ void setup()
 
   setup_wifi();
 
-  // ArduinoOTA.setHostname(ESPHostname);
-  // ArduinoOTA.setPassword("admin");
-  // ArduinoOTA.begin();
-
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
 
   Tasks.add<temperature>("temperature")
       ->setClient(&client)
-      ->startFps(0.017); // /Minute
+      ->startFps(0.017); // ~ 1 minute
 
   Tasks.add<pumpError>("pumpError")
       ->setClient(&client)
-      ->startFps(1); // /Minute
+      ->startFps(1); // ~ 1 second
 
+  // code for current time
+  // server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+  //           { request->send(200, "text/plain", "Garden-Service"); });
+
+  // code for Build-Date/-time   code von ChatGPT
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            { request->send(200, "text/plain", "Pool-Service"); });
+            {
+    String message = "Pool-Service (Build: ";
+    message += __DATE__;
+    message += " ";
+    message += __TIME__;
+    message += ")";
+    request->send(200, "text/plain", message); });
 
   ElegantOTA.begin(&server); // Start ElegantOTA
   ElegantOTA.onStart(onOTAStart);
   ElegantOTA.onProgress(onOTAProgress);
+  ElegantOTA.setAutoReboot(true);
   ElegantOTA.onEnd(onOTAEnd);
   server.begin();
   Serial.println("HTTP server started");
@@ -364,9 +367,8 @@ void loop()
   static bool hcl_err = true;
   static bool naoh_err = true;
   static unsigned long lastMillis = millis();
-  uint16_t delayTime = 1000; // 10 sec
-
   static unsigned long previousMillis = millis();
+  uint16_t delayTime = 1000;
 
   ElegantOTA.loop();
   // if WiFi is down, try reconnecting
@@ -398,7 +400,6 @@ void loop()
 
   Tasks.update();
 
-  //  static long lastMillis = 0;
   if (lastMillis - millis() >= 1000)
   {
     digitalWrite(LED_BUILTIN, state_led);
@@ -408,78 +409,4 @@ void loop()
 
   color_gradient_loop();
 
-  //   ArduinoOTA.handle();             //Rainsensor
-  // long now = millis();
-  // if (now - lastMsg > sensorTakt)
-  // {
-  //   lastMsg = now;
-  //   getRainValues(); // Rainsensor
-  // }
-  /*
-    if (millis() - lastMillis >= delayTime)
-    {
-      if (digitalRead(CLEAN_MON) == digitalRead(CLEAN_PUMP))
-      {
-        if (!clean_err)
-        {
-          client.publish("outGarden/clean_error", "true");
-        }
-        clean_err = true;
-      }
-      else
-      {
-        if (clean_err)
-        {
-          client.publish("outGarden/clean_error", "false");
-        }
-        clean_err = false;
-      }
-
-      if (digitalRead(HCL_MON) == digitalRead(HCL_PUMP))
-      {
-        if (!hcl_err)
-        {
-          client.publish("c", "true");
-        }
-        hcl_err = true;
-      }
-      else
-      {
-        if (hcl_err)
-        {
-          client.publish("outGarden/hcl_error", "false");
-        }
-        hcl_err = false;
-      }
-
-      if (digitalRead(NAOH_MON) == digitalRead(NAOH_PUMP))
-      {
-        if (!naoh_err)
-        {
-          client.publish("outGarden/naoh_error", "true");
-        }
-        naoh_err = true;
-      }
-      else
-      {
-        if (naoh_err)
-        {
-          client.publish("outGarden/naoh_error", "false");
-        }
-        naoh_err = false;
-      }
-
-      // bool clear_err = digitalRead(CLEAN_MON);
-      // if (clear_err)
-      // {
-      //   Serial.println("Clear alert");
-      // }
-      // else
-      // {
-      //   Serial.println("Clear pump switched off");
-      // }
-
-      lastMillis = millis();
-    }
-      */
 } /*--------------------------------------------------------------------------*/

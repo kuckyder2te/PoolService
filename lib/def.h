@@ -6,13 +6,13 @@
 */
 
 #define HCL_PUMP     5
-#define HCL_MON     39
-#define NAOH_PUMP   17
-#define NAOH_MON    35
-#define CLEAN_PUMP  32
-#define CLEAN_MON   33
+#define HCL_MON      39
+#define NAOH_PUMP    17
+#define NAOH_MON     35
+#define ALGIZID_PUMP 32
+#define ALGIZID_MON  33
 
-#define POOL_LIGHT  25 
+#define POOL_LIGHT   25 
 
 #define LED_STRIPE_GREEN 16
 #define LED_STRIPE_BLUE   4
@@ -22,4 +22,4 @@
 #define RELAY_2  27  // Pont Pump
 #define RELAY_3  14  // Heat Pump
 
-#define ONE_WIRE_BUS 19
+#define DALLAS 19

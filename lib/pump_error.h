@@ -14,7 +14,7 @@
 #include <PubSubClient.h>
 #include "..\lib\def.h"
 
-uint16_t delayTime = 1000; // 10 sec ???
+//uint16_t delayTime = 1000; // 10 sec ???
 
 class pumpError : public Task::Base
 {
@@ -40,14 +40,12 @@ public:
 
     virtual void update() override
     {
-    //    static unsigned long lastMillis = millis();
         static bool clean_err = true;
         static bool hcl_err = true;
         static bool naoh_err = true;
 
-    //    if (millis() - lastMillis >= delayTime)
         {
-            if (digitalRead(CLEAN_MON) == digitalRead(CLEAN_PUMP))
+            if (digitalRead(ALGIZID_MON) == digitalRead(ALGIZID_PUMP))
             {
                 if (!clean_err)
                 {

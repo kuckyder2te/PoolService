@@ -11,18 +11,17 @@
 
 #include <Arduino.h>
 #include <TaskManager.h>
+#include <PubSubClient.h>
 #include "..\lib\def.h"
 
-OneWire oneWire(ONE_WIRE_BUS);
+OneWire oneWire(DALLAS);
 DallasTemperature sensors(&oneWire);
-
-#include <TaskManager.h>
-#include <PubSubClient.h>
 
 class temperature : public Task::Base
 {
     PubSubClient* _client;
     char msg[30];
+    float temperaturePool;
 public:
     temperature(const String &name)
         : Task::Base(name)
@@ -44,11 +43,11 @@ public:
     virtual void update() override
     {
         sensors.requestTemperatures(); // Send the command to get temperatures
-        MODEL.tempC = sensors.getTempCByIndex(0);
+        temperaturePool = sensors.getTempCByIndex(0);
 
-        if (MODEL.tempC != DEVICE_DISCONNECTED_C)
+        if (temperaturePool != DEVICE_DISCONNECTED_C)
         {
-            sprintf(msg, "{ \"value\":%.1f }", MODEL.tempC);
+            sprintf(msg, "{ \"value\":%.1f }", temperaturePool);
             _client->publish("outGarden/temperature", msg);
      }
         else

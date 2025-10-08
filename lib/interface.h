@@ -2,8 +2,8 @@
 /*
     File name. interface.h
     Date: 2024.10.06
-    Author: Stephan Scholz
-    Description: Pool Control
+    Author: Stephan Scholz / Wilhelm Kuckelsberg
+    Description: Pool service
 */
 
 #include <Arduino.h>
@@ -62,21 +62,21 @@ void naoh_pump(bool option)
     client.publish("outGarden/naoh_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
-void clean_pump(bool option)
+void algizid_pump(bool option)
 {
     if (option)
     {
-        Serial.println("Wash pump ON");
-        digitalWrite(CLEAN_PUMP, HIGH);
+        Serial.println("Algizid pump ON");
+        digitalWrite(ALGIZID_PUMP, HIGH);
     }
     else
     {
-        Serial.println("Wash pump OFF");
-        digitalWrite(CLEAN_PUMP, LOW);
+        Serial.println("Algizid pump OFF");
+        digitalWrite(ALGIZID_PUMP, LOW);
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outGarden/clean_pump/state", msg);
+    client.publish("outGarden/algizid_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void pont_pump(bool option)
@@ -194,8 +194,6 @@ void color_gradient_loop()
         {
             if (_b < 255)
             {
-                //_b++;
-                //_g--;
                 _b+=5;
                 _g-=5;
                 Serial.printf("\n\rblue: %i, green: %i\n\r", _b, _g);
@@ -209,8 +207,6 @@ void color_gradient_loop()
         { // down
             if (_b > 0)
             {
-                // _b--;
-                // _g++;
                 _b-=5;
                 _g+=5;
                 Serial.printf("n\r\blue: %i, green: %i ", _b, _g);
