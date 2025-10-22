@@ -11,14 +11,13 @@
 
 #include <Arduino.h>
 #include <TaskManager.h>
-#include <PubSubClient.h>
+#include "../include/network.h"
 #include "..\lib\def.h"
 
-//uint16_t delayTime = 1000; // 10 sec ???
+extern Network *_network;
 
 class pumpError : public Task::Base
 {
-    PubSubClient *_client;
     char msg[30];
 
 public:
@@ -26,13 +25,6 @@ public:
         : Task::Base(name)
     {
     }
-
-    pumpError *setClient(PubSubClient *client)
-    {
-        _client = client;
-        return this;
-    }
-
     virtual void begin() override
     {
         Serial.println("Pump errors");
@@ -49,7 +41,7 @@ public:
             {
                 if (!algizid_err)
                 {
-                    client.publish("outGarden/algizid_error", "true");
+                    _network->pubMsg("outGarden/algizid_error", "true");
                 }
                 algizid_err = true;
             }
@@ -57,7 +49,7 @@ public:
             {
                 if (algizid_err)
                 {
-                    client.publish("outGarden/algizid_error", "false");
+                    _network->pubMsg("outGarden/algizid_error", "false");
                 }
                 algizid_err = false;
             }
@@ -66,7 +58,7 @@ public:
             {
                 if (!hcl_err)
                 {
-                    client.publish("outGarden/hcl_error", "true");
+                    _network->pubMsg("outGarden/hcl_error", "true");
                 }
                 hcl_err = true;
             }
@@ -74,7 +66,7 @@ public:
             {
                 if (hcl_err)
                 {
-                    client.publish("outGarden/hcl_error", "false");
+                    _network->pubMsg("outGarden/hcl_error", "false");
                 }
                 hcl_err = false;
             }
@@ -83,7 +75,7 @@ public:
             {
                 if (!naoh_err)
                 {
-                    client.publish("outGarden/naoh_error", "true");
+                    _network->pubMsg("outGarden/naoh_error", "true");
                 }
                 naoh_err = true;
             }
@@ -91,7 +83,7 @@ public:
             {
                 if (naoh_err)
                 {
-                    client.publish("outGarden/naoh_error", "false");
+                    _network->pubMsg("outGarden/naoh_error", "false");
                 }
                 naoh_err = false;
             }

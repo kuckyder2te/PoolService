@@ -9,11 +9,9 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 
 #include <Arduino.h>
 #include <TaskManager.h>
-// #include <ESP8266WiFi.h>
-// #include <ESPAsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include <WiFi.h>
-#include <PubSubClient.h>
+#include "../include/myLogger.h"
+#include "../include/network.h"
+#include "../include/messageBroker.h"
 #include <Wire.h>
 #include <DallasTemperature.h>
 #include <ArduinoJson.h>
@@ -24,80 +22,15 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 #include "..\lib\temperature.h"
 #include "..\lib\pump_error.h"
 
-const char *ssid = SID;
-const char *password = PW;
-const char *mqtt_server = MQTT;
-
-WiFiClient espClient;
-PubSubClient client(espClient);
+Network *_network;
 JsonDocument doc;
+
+HardwareSerial *TestOutput = &Serial;
+HardwareSerial *DebugOutput = &Serial;
+
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE];
-
-unsigned long lastReconnectAttempt = 0;
-
-// ----- OTA begin--------
-#include <ElegantOTA.h>
-
-AsyncWebServer server(80);
-
-unsigned long ota_progress_millis = 0;
-
-void onOTAStart()
-{
-  // Log when OTA has started
-  Serial.println("OTA update started!");
-}
-
-void onOTAProgress(size_t current, size_t final)
-{
-  // Log every 1 second
-  if (millis() - ota_progress_millis > 1000)
-  {
-    ota_progress_millis = millis();
-    Serial.printf("OTA Progress Current: %u bytes, Final: %u bytes\n", current, final);
-  }
-}
-
-void onOTAEnd(bool success)
-{
-  // Log when OTA has finished
-  if (success)
-  {
-    Serial.println("OTA update finished successfully!");
-  }
-  else
-  {
-    Serial.println("There was an error during OTA update!");
-  }
-}
-// ----- OTA end --------
-
-void setup_wifi()
-{
-  delay(10);
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-  }
-
-  randomSeed(micros());
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-
-} /*--------------------------------------------------------------------------*/
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
@@ -263,8 +196,16 @@ void callback(char *topic, byte *payload, unsigned int length)
 void setup()
 {
   delay(2000);
-  Serial.begin(115200);
+   DebugOutput->begin(DEBUG_SPEED);
+  Logger::setOutputFunction(&MyLoggerOutput::localLogger);
+  Logger::setLogLevel(Logger::DEBUG); // Muss immer einen Wert in platformio.ini haben (SILENT)
+  delay(500);                         // For switching on Serial Monitor
+  LOGGER_NOTICE_FMT("************************* Poolservic (%s) *************************", __TIMESTAMP__);
+  LOGGER_NOTICE("Start building Poolservic");
 
+  _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
+  _network->begin();
+  
   pinMode(HCL_PUMP, OUTPUT);
   digitalWrite(HCL_PUMP, LOW);
 
@@ -292,71 +233,19 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
 
-  Serial.println();
-  Serial.println("Poolservice inkl. pH, Pool Light, Pool erwärmen und Teichpumpe");
-  String thisBoard = ARDUINO_BOARD;
-  Serial.println(thisBoard);
-
-  setup_wifi();
-
-  client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
-
+  
   Tasks.add<temperature>("temperature")
-      ->setClient(&client)
       ->startFps(0.017); // ~ 1 minute
 
   Tasks.add<pumpError>("pumpError")
-      ->setClient(&client)
       ->startFps(1); // ~ 1 second
-
-  // code for current time
-  // server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-  //           { request->send(200, "text/plain", "Garden-Service"); });
-
-  // code for Build-Date/-time   code von ChatGPT
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-            {
-    String message = "Pool-Service (Build: ";
-    message += __DATE__;
-    message += " ";
-    message += __TIME__;
-    message += ")";
-    request->send(200, "text/plain", message); });
-
-  ElegantOTA.begin(&server); // Start ElegantOTA
-  ElegantOTA.onStart(onOTAStart);
-  ElegantOTA.onProgress(onOTAProgress);
-  ElegantOTA.setAutoReboot(true);
-  ElegantOTA.onEnd(onOTAEnd);
-  server.begin();
-  Serial.println("HTTP server started");
 
   pool_light(false);
   set_gradient_rate(500);
   set_gradient_loop_state(false);
 
-} /*--------------------------------------------------------------------------*/
-
-bool reconnect()
-{
-  Serial.print("Attempting MQTT connection...");
-  String clientId = "ESP32Client-";
-  clientId += String(random(0xffff), HEX);
-
-  if (client.connect(clientId.c_str()))
-  {
-    Serial.println("connected");
-    client.publish("outGarden", "Garden control");
-    client.subscribe("inGarden/#");
-    return true;
-  }
-  else
-  {
-    Serial.print("failed, rc=");
-    Serial.print(client.state());
-    return false;
-  }
+  msgBroker.printTopics();
+  LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");
 } /*--------------------------------------------------------------------------*/
 
 void loop()
@@ -369,33 +258,7 @@ void loop()
   static unsigned long previousMillis = millis();
   uint16_t delayTime = 1000;
 
-  ElegantOTA.loop();
-  // if WiFi is down, try reconnecting
-  if ((WiFi.status() != WL_CONNECTED) && (millis() - previousMillis >= 30000))
-  {
-    Serial.print(millis());
-    Serial.println("Reconnecting to WiFi...");
-    WiFi.disconnect();
-    WiFi.reconnect();
-    previousMillis = millis();
-  }
-
-  if (!client.connected())
-  {
-    unsigned long now = millis();
-    if (now - lastReconnectAttempt > 5000)
-    {
-      lastReconnectAttempt = now;
-      if (reconnect())
-      {
-        lastReconnectAttempt = 0;
-      }
-    }
-  }
-  else
-  {
-    client.loop();
-  }
+  _network->update();
 
   Tasks.update();
 

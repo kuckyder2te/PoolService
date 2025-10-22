@@ -7,8 +7,10 @@
 */
 
 #include <Arduino.h>
-#include <PubSubClient.h>
+#include "../include/network.h"
 #include "..\lib\def.h"
+
+extern Network *_network;
 
 namespace interface
 {
@@ -20,7 +22,6 @@ namespace interface
 }
 
 extern char msg[50];
-extern PubSubClient client;
 uint8_t _r, _g, _b;
 bool loop_state = false;
 bool gradient_up = true;
@@ -42,7 +43,7 @@ void hcl_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0;
-    client.publish("outGarden/hcl_pump/state", msg);
+    _network->pubMsg("outGarden/hcl_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void naoh_pump(bool option)
@@ -59,7 +60,7 @@ void naoh_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outGarden/naoh_pump/state", msg);
+    _network->pubMsg("outGarden/naoh_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void algizid_pump(bool option)
@@ -76,7 +77,7 @@ void algizid_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outGarden/algizid_pump/state", msg);
+    _network->pubMsg("outGarden/algizid_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void pont_pump(bool option)
@@ -93,7 +94,7 @@ void pont_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outGarden/pont_pump/state", msg);
+    _network->pubMsg("outGarden/pont_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void heat_pump(bool option)
@@ -110,7 +111,7 @@ void heat_pump(bool option)
     }
     msg[0] = (option ? '1' : '0');
     msg[1] = 0; // String end
-    client.publish("outGarden/heat_pump/state", msg);
+    _network->pubMsg("outGarden/heat_pump/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void pool_light(bool state, bool silent = false) // turns the LED stripes on/off
@@ -132,7 +133,7 @@ void pool_light(bool state, bool silent = false) // turns the LED stripes on/off
     msg[0] = (state? '1' : '0');
     msg[1] = 0;
     if(!silent)
-        client.publish("outGarden/pool_light/state", msg);
+        _network->pubMsg("outGarden/pool_light/state", msg);
 } /*--------------------------------------------------------------------------*/
 
 void pool_light(uint8_t r, uint8_t g, uint8_t b, bool state = true) // Choose colors
@@ -147,7 +148,7 @@ void pool_light(uint8_t r, uint8_t g, uint8_t b, bool state = true) // Choose co
     analogWrite(LED_STRIPE_BLUE, 255 - _b);
     sprintf(msg, "{ \"r\":%d, \"g\":%d, \"b\":%d }", _r, _g, _b);
 
-    client.publish("outGarden/colors/rgb", msg);
+    _network->pubMsg("outGarden/colors/rgb", msg);
     pool_light(state);
 } /*--------------------------------------------------------------------------*/
 
@@ -156,7 +157,7 @@ void set_gradient_rate(uint16_t rate)
     gradient_rate = rate;
     Serial.printf("\n\rGradient rate: %i", rate);
     sprintf(msg, "{ \"gradiant_value\":%d}", rate);
-    client.publish("outGarden/pool_light/gradient_rate", msg);
+    _network->pubMsg("outGarden/pool_light/gradient_rate", msg);
 } /*--------------------------------------------------------------------------*/
 
 void set_gradient_loop_state(bool state)
@@ -172,7 +173,7 @@ void set_gradient_loop_state(bool state)
 
     msg[0] = (state ? '1' : '0');
     msg[1] = 0;
-    client.publish("outGarden/pool_light/gradient_state", msg);
+    _network->pubMsg("outGarden/pool_light/gradient_state", msg);
 
     pool_light(state);
 } /*--------------------------------------------------------------------------*/
@@ -214,7 +215,7 @@ void color_gradient_loop()
             
         }
         sprintf(msg, "{ \"r\":%d, \"g\":%d, \"b\":%d }", _r, _g, _b);
-        client.publish("outGarden/colors/rgb", msg);
+        _network->pubMsg("outGarden/colors/rgb", msg);
         pool_light(true,true);
     }
 }

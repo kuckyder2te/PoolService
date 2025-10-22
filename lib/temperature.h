@@ -11,27 +11,20 @@
 
 #include <Arduino.h>
 #include <TaskManager.h>
-#include <PubSubClient.h>
+#include "../include/network.h"
 #include "..\lib\def.h"
 
 OneWire oneWire(DALLAS);
 DallasTemperature sensors(&oneWire);
-
+extern Network *_network;
 class temperature : public Task::Base
 {
-    PubSubClient* _client;
     char msg[30];
     float temperaturePool;
 public:
     temperature(const String &name)
         : Task::Base(name)
     {
-    }
-
-    temperature *setClient(PubSubClient *client){
-        _client = client;
-
-        return this;
     }
 
     virtual void begin() override
@@ -48,7 +41,7 @@ public:
         if (temperaturePool != DEVICE_DISCONNECTED_C)
         {
             sprintf(msg, "{ \"value\":%.1f }", temperaturePool);
-            _client->publish("outGarden/temperature", msg);
+            _network->pubMsg("outGarden/temperature", msg);
      }
         else
         {
