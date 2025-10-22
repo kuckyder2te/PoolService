@@ -37,8 +37,6 @@ char msg[MSG_BUFFER_SIZE];
 
 unsigned long lastReconnectAttempt = 0;
 
-bool state_led;
-
 // ----- OTA begin--------
 #include <ElegantOTA.h>
 
@@ -366,6 +364,7 @@ void loop()
   static bool clean_err = true;
   static bool hcl_err = true;
   static bool naoh_err = true;
+  static bool state_led = false;
   static unsigned long lastMillis = millis();
   static unsigned long previousMillis = millis();
   uint16_t delayTime = 1000;
@@ -400,7 +399,7 @@ void loop()
 
   Tasks.update();
 
-  if (lastMillis - millis() >= 1000)
+  if (millis() - lastMillis >= 1000)
   {
     digitalWrite(LED_BUILTIN, state_led);
     state_led = !state_led;

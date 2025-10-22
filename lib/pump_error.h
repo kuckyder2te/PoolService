@@ -40,26 +40,26 @@ public:
 
     virtual void update() override
     {
-        static bool clean_err = true;
+        static bool algizid_err = true;
         static bool hcl_err = true;
         static bool naoh_err = true;
 
         {
             if (digitalRead(ALGIZID_MON) == digitalRead(ALGIZID_PUMP))
             {
-                if (!clean_err)
+                if (!algizid_err)
                 {
-                    client.publish("outGarden/clean_error", "true");
+                    client.publish("outGarden/algizid_error", "true");
                 }
-                clean_err = true;
+                algizid_err = true;
             }
             else
             {
-                if (clean_err)
+                if (algizid_err)
                 {
-                    client.publish("outGarden/clean_error", "false");
+                    client.publish("outGarden/algizid_error", "false");
                 }
-                clean_err = false;
+                algizid_err = false;
             }
 
             if (digitalRead(HCL_MON) == digitalRead(HCL_PUMP))
