@@ -68,21 +68,21 @@ void callback(char *topic, byte *payload, unsigned int length)
       String rootStr = topicStr.substring(0, topicStr.indexOf('/'));
       Serial.println(rootStr);
       if (rootStr == "naoh_pump")
-      {
-        switch ((char)payload[0])
-        {
-        case '0':
-          naoh_pump(false);
-          break;
-        case '1':
-          naoh_pump(true);
-          break;
-        default:
-          // Warning !! Undefined payload or not 1/0
-          break;
-        }
-      }
-      else if (rootStr == "algizid_pump")
+      // {
+      //   switch ((char)payload[0])
+      //   {
+      //   case '0':
+      //     naoh_pump(false);
+      //     break;
+      //   case '1':
+      //     naoh_pump(true);
+      //     break;
+      //   default:
+      //     // Warning !! Undefined payload or not 1/0
+      //     break;
+      //   }
+      // }
+      if (rootStr == "algizid_pump")
       {
         switch ((char)payload[0])
         {
