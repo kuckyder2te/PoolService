@@ -29,39 +29,6 @@ uint16_t gradient_rate = 100;
 
 void set_gradient_loop_state(bool);
 
-void hcl_pump(bool option)
-{
-    if (option)
-    {
-        Serial.println("HCl Pump ON");
-        digitalWrite(HCL_PUMP, HIGH);
-    }
-    else
-    {
-        Serial.println("HCl Pump OFF");
-        digitalWrite(HCL_PUMP, LOW);
-    }
-    msg[0] = (option ? '1' : '0');
-    msg[1] = 0;
-    _network->pubMsg("outGarden/hcl_pump/state", msg);
-} /*--------------------------------------------------------------------------*/
-
-void naoh_pump(bool option)
-{
-    if (option)
-    {
-        Serial.println("NaOH Pump ON");
-        digitalWrite(NAOH_PUMP, HIGH);
-    }
-    else
-    {
-        Serial.println("NaOH Pump OFF");
-        digitalWrite(NAOH_PUMP, LOW);
-    }
-    msg[0] = (option ? '1' : '0');
-    msg[1] = 0; // String end
-    _network->pubMsg("outGarden/naoh_pump/state", msg);
-} /*--------------------------------------------------------------------------*/
 
 void algizid_pump(bool option)
 {

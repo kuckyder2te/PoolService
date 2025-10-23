@@ -9,17 +9,21 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 
 #include <Arduino.h>
 #include <TaskManager.h>
+#include "..\lib\def.h"
+
+#define LOCAL_DEBUG
+char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/myLogger.h"
+
 #include "../include/network.h"
 #include "../include/messageBroker.h"
-#include <Wire.h>
-#include <DallasTemperature.h>
+#include "../include/services/temperature.h"
+#include "../include/services/pump_hcl.h"
+
 #include <ArduinoJson.h>
-//#include "..\lib\model.h"
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
-#include "..\lib\def.h"
-#include "..\lib\temperature.h"
+
 #include "..\lib\pump_error.h"
 
 Network *_network;
@@ -27,6 +31,8 @@ JsonDocument doc;
 
 HardwareSerial *TestOutput = &Serial;
 HardwareSerial *DebugOutput = &Serial;
+
+Services::Pump_hcl pump_hcl(HCL_PUMP,HCL_MON);
 
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
@@ -61,24 +67,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     {
       String rootStr = topicStr.substring(0, topicStr.indexOf('/'));
       Serial.println(rootStr);
-      if (rootStr == "hcl_pump")
-      {
-        switch (payload[0])
-        {
-        case '0': // false
-          // Pump off
-          hcl_pump(false);
-          break;
-        case '1':
-          // Pump on
-          hcl_pump(true);
-          break;
-        default:
-          // Warning !! Undefined payload or not 1/0
-          break;
-        }
-      }
-      else if (rootStr == "naoh_pump")
+      if (rootStr == "naoh_pump")
       {
         switch ((char)payload[0])
         {
@@ -206,12 +195,6 @@ void setup()
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
   _network->begin();
   
-  pinMode(HCL_PUMP, OUTPUT);
-  digitalWrite(HCL_PUMP, LOW);
-
-  pinMode(HCL_MON, INPUT);
-  digitalWrite(HCL_MON, LOW);
-
   pinMode(NAOH_PUMP, OUTPUT);
   digitalWrite(NAOH_PUMP, LOW);
 
@@ -234,7 +217,8 @@ void setup()
   digitalWrite(LED_BUILTIN, LOW);
 
   
-  Tasks.add<temperature>("temperature")
+  Tasks.add<Services::Temperature>("temperature")
+      ->init(DALLAS)
       ->startFps(0.017); // ~ 1 minute
 
   Tasks.add<pumpError>("pumpError")
