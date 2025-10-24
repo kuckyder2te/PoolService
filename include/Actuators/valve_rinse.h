@@ -8,7 +8,7 @@
 #include "../message.h"
 #include "../messageBroker.h"
 
-namespace Services
+namespace Actuators
 {
     class Valve_terrace
     {
@@ -49,4 +49,4 @@ namespace Services
         _network->pubMsg("outGarden/terrace_valve/state", payload);
         return payload["state"];
     };
-}
+}// End namespace Actuators

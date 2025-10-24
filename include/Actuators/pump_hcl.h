@@ -8,7 +8,7 @@
 #include "../message.h"
 #include "../messageBroker.h"
 
-namespace Services
+namespace Actuators
 {
     class Pump_hcl
     {
@@ -54,4 +54,4 @@ namespace Services
         _network->pubMsg("outGarden/hcl_pump/state", payload);
         return payload["state"];
     };
-}
+} //End namespace Actuators

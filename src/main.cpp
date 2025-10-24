@@ -17,15 +17,15 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 
 #include "../include/network.h"
 #include "../include/messageBroker.h"
-#include "../include/Actuators/temperature.h"
-#include "../include/Actuators/pump_hcl.h"
-#include "../include/Actuators/pump_naoh.h"
-#include "../include/Actuators/pump_algizid.h"
-#include "../include/Actuators/pump_pont.h"
-#include "../include/Actuators/pump_heat.h"
-#include "../include/Actuators/valve_rinse.h"
-#include "../include/Actuators/valve_garden.h"
-#include "../include/Actuators/valve_terrace.h"
+#include "../include/actuators/temperature.h"
+#include "../include/actuators/pump_hcl.h"
+#include "../include/actuators/pump_naoh.h"
+#include "../include/actuators/pump_algizid.h"
+#include "../include/actuators/pump_pont.h"
+#include "../include/actuators/pump_heat.h"
+#include "../include/actuators/valve_rinse.h"
+#include "../include/actuators/valve_garden.h"
+//#include "../include/actuators/valve_terrace.h"
 #include <ArduinoJson.h>
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
@@ -39,7 +39,7 @@ JsonDocument doc;
 HardwareSerial *TestOutput = &Serial;
 HardwareSerial *DebugOutput = &Serial;
 
-Services::Pump_hcl pump_hcl(HCL_PUMP,HCL_MON);
+//Pump_hcl pump_hcl(HCL_PUMP,HCL_MON);
 
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
@@ -137,7 +137,6 @@ void setup()
 
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
   _network->begin();
-  msgBroker.printTopics();  // changed by Kucky
   
   pinMode(NAOH_PUMP, OUTPUT);
   digitalWrite(NAOH_PUMP, LOW);
@@ -161,7 +160,7 @@ void setup()
   digitalWrite(LED_BUILTIN, LOW);
 
   
-  Tasks.add<Services::Temperature>("temperature")
+  Tasks.add<Actuators::Temperature>("temperature")
       ->init(DALLAS)
       ->startFps(0.017); // ~ 1 minute
 

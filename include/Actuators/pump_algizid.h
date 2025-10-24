@@ -8,7 +8,7 @@
 #include "../message.h"
 #include "../messageBroker.h"
 
-namespace Services
+namespace Actuators
 {
     class Pump_algizid
     {

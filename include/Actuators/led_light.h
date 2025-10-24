@@ -8,7 +8,7 @@
 #include "../message.h"
 #include "../messageBroker.h"
 
-namespace Services
+namespace Actuators
 {
     class Led_lights
     {
@@ -51,4 +51,4 @@ namespace Services
         _network->pubMsg("outGarden/Led_lights/state", payload);
         return payload["state"];
     };
-}
+} // End namespace Actuators

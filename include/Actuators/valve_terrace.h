@@ -8,9 +8,9 @@
 #include "../message.h"
 #include "../messageBroker.h"
 
-namespace Services
+namespace Actuators
 {
-    class Valve_garden
+    class Valve_terrace
     {
         uint8_t _valve_pin; // to be refactored ??
     //   uint8_t _monitor_pin;
@@ -18,14 +18,14 @@ namespace Services
     private:
         class State : public Message
         {
-            Valve_garden& _parent;
+            Valve_terrace& _parent;
         public:
-            State(Valve_garden& parent, String topic) : Message(topic), _parent(parent) {}
+            State(Valve_terrace& parent, String topic) : Message(topic), _parent(parent) {}
             bool call(JsonDocument payload);
         };
 
     public:
-        Valve_garden(const uint8_t pump_pin) : _valve_pin(pump_pin)
+        Valve_terrace(const uint8_t pump_pin) : _valve_pin(pump_pin)
         
         {
             LOGGER_NOTICE("Create garden valve");
@@ -34,7 +34,7 @@ namespace Services
             msgBroker.registerMessage(new State(*this,"inGarden/garden_valve/state"));
         };
     };
-    bool Valve_garden::State::call(JsonDocument payload)
+    bool Valve_terrace::State::call(JsonDocument payload)
     {
         if (payload["state"])
         {
@@ -49,4 +49,4 @@ namespace Services
         _network->pubMsg("outGarden/garden_valve/state", payload);
         return payload["state"];
     };
-}
+}// End namespace Actuators

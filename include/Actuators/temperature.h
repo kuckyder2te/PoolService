@@ -12,7 +12,7 @@
 
 extern Network *_network;
 
-namespace Services
+namespace Actuators
 {
     class Temperature : public Task::Base
     {
@@ -55,4 +55,4 @@ namespace Services
             }
         }
     };
-}
+} // End namespace Actuators
