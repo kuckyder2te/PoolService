@@ -2,7 +2,7 @@
     File name: def.h
     Date: 2024.11.14
     Author: Wilhelm Kuckelsberg
-    Description: Definition at the PINs
+    Description: Definitions for PINs and constands
 */
 
 #define DEBUG_MESSAGE_BUFFER_SIZE 100

@@ -9,7 +9,7 @@ https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Rege
 /// @cond
 #include <Arduino.h>
 #include <TaskManager.h>
-#include "..\lib\def.h"
+#include "def.h"
 
 #define LOCAL_DEBUG
 char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
@@ -25,12 +25,12 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/actuators/pump_heat.h"
 #include "../include/actuators/valve_rinse.h"
 #include "../include/actuators/valve_garden.h"
-//#include "../include/actuators/valve_terrace.h"
+//#include "../include/actuators/valve_terrace.h"    // Fehlermeldung
 #include <ArduinoJson.h>
-#include "..\lib\interface.h"
+//#include "..\lib\interface.h"
 #include "..\lib\secrets.h"
 
-#include "..\lib\pump_error.h"
+//#include "..\lib\pump_error.h"
 /// @endcond
 
 Network *_network;
