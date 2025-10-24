@@ -36,6 +36,12 @@ JsonDocument doc;
 HardwareSerial *TestOutput = &Serial;
 HardwareSerial *DebugOutput = &Serial;
 
+MessageBroker msgBroker;  // Change by Kucky Chat GPT
+
+Actuators::Pump_naoh *PumpNaOH;
+Actuators::Pump_hcl *PumpHCl;
+Actuators::Pump_algizid *PumpAlgizid;
+
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE]; 
@@ -48,7 +54,7 @@ void setup()
   Logger::setLogLevel(Logger::DEBUG); // Muss immer einen Wert in platformio.ini haben (SILENT)
   delay(500);                         // For switching on Serial Monitor
   LOGGER_NOTICE_FMT("************************* Poolservic (%s) *************************", __TIMESTAMP__);
-  LOGGER_NOTICE("Start building Poolservic");
+  LOGGER_NOTICE("Start building Poolservice");
 
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
   _network->begin();
@@ -60,6 +66,10 @@ void setup()
   pinMode(RELAY_2, OUTPUT);
   pinMode(RELAY_3, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+
+  PumpNaOH = new Actuators::Pump_naoh(NAOH_PUMP, NAOH_MON);
+  PumpHCl = new Actuators::Pump_hcl(HCL_PUMP, HCL_MON);
+  PumpAlgizid = new Actuators::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
 
   Tasks.add<Actuators::Temperature>("temperature")
       ->init(DALLAS)
