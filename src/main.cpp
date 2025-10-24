@@ -47,7 +47,7 @@ char msg[MSG_BUFFER_SIZE];
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
-  Serial.print("Message arrived [");
+  Serial.print("Message arr   ived [");
   Serial.print(topic);
   Serial.print("] ");
   for (int i = 0; i < length; i++)
@@ -139,37 +139,16 @@ void setup()
   _network->begin();
   
   pinMode(NAOH_PUMP, OUTPUT);
-  digitalWrite(NAOH_PUMP, LOW);
-
   pinMode(NAOH_MON, INPUT);
-  digitalWrite(NAOH_MON, LOW);
-
   pinMode(ALGIZID_PUMP, OUTPUT);
-  digitalWrite(ALGIZID_PUMP, LOW);
-
   pinMode(ALGIZID_MON, INPUT);
-  digitalWrite(ALGIZID_MON, LOW);
-
   pinMode(RELAY_2, OUTPUT);
-  digitalWrite(RELAY_2, LOW);
-
   pinMode(RELAY_3, OUTPUT);
-  digitalWrite(RELAY_3, LOW);
-
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
 
-  
   Tasks.add<Actuators::Temperature>("temperature")
       ->init(DALLAS)
       ->startFps(0.017); // ~ 1 minute
-
-  Tasks.add<pumpError>("pumpError")
-      ->startFps(1); // ~ 1 second
-
-  pool_light(false);
-  set_gradient_rate(500);
-  set_gradient_loop_state(false);
 
   msgBroker.printTopics();
   LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");
@@ -177,25 +156,8 @@ void setup()
 
 void loop()
 {
-  static bool clean_err = true;
-  static bool hcl_err = true;
-  static bool naoh_err = true;
-  static bool state_led = false;
-  static unsigned long lastMillis = millis();
-  static unsigned long previousMillis = millis();
-  uint16_t delayTime = 1000;
-
   _network->update();
 
   Tasks.update();
-
-  if (millis() - lastMillis >= 1000)
-  {
-    digitalWrite(LED_BUILTIN, state_led);
-    state_led = !state_led;
-    lastMillis = millis();
-  }
-
-  color_gradient_loop();
 
 } /*--------------------------------------------------------------------------*/
