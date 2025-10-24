@@ -13,7 +13,7 @@ namespace Services
     class Heat_pont
     {
         uint8_t _pump_pin; // to be refactored
-        uint8_t _monitor_pin;
+     //   uint8_t _monitor_pin;
 
     private:
         class State : public Message
@@ -25,14 +25,14 @@ namespace Services
         };
 
     public:
-        Heat_pont(const uint8_t pump_pin, const uint8_t monitor_pin) : _pump_pin(pump_pin), _monitor_pin(monitor_pin)       
+        Heat_pont(const uint8_t pump_pin) : _pump_pin(pump_pin)       // changed by Kucky
         {
-            LOGGER_NOTICE("Create");
+            LOGGER_NOTICE("Create heat pump");
             pinMode(pump_pin, OUTPUT);
             digitalWrite(pump_pin, LOW);
-            pinMode(monitor_pin, INPUT);
-            digitalWrite(monitor_pin, LOW);
-            msgBroker.registerMessage(*this, new State(*this, "inGarden/heat_pump/state"));
+            // pinMode(monitor_pin, INPUT);
+            // digitalWrite(monitor_pin, LOW);
+            msgBroker.registerMessage(new State(*this, "inGarden/heat_pump/state"));
         };
     };
     bool Heat_pont::State::call(JsonDocument payload)

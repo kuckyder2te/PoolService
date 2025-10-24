@@ -21,8 +21,9 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/services/pump_hcl.h"
 #include "../include/services/pump_naoh.h"
 #include "../include/services/pump_algizid.h"
-// #include "../include/services/pump_pont.h"
-// #include "../include/services/pump_heat.h"
+#include "../include/services/pump_pont.h"
+#include "../include/services/pump_heat.h"
+#include "../include/services/valve_rinse.h"
 
 #include <ArduinoJson.h>
 #include "..\lib\interface.h"
@@ -135,6 +136,7 @@ void setup()
 
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
   _network->begin();
+  msgBroker.printTopics();  // changed by Kucky
   
   pinMode(NAOH_PUMP, OUTPUT);
   digitalWrite(NAOH_PUMP, LOW);
