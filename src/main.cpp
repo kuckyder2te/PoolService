@@ -25,6 +25,7 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/actuators/pump_heat.h"
 #include "../include/actuators/valve_rinse.h"
 #include "../include/actuators/valve_garden.h"
+#include "../include/actuators/led_light.h"
 //#include "../include/actuators/valve_terrace.h"    // Fehlermeldung
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -44,6 +45,8 @@ Actuators::Pump_algizid *PumpAlgizid;
 
 Actuators::Pump_pont *PumpPont;
 Actuators::Pump_heat *PumpHeat;
+
+Actuators::Led_lights *LEDLights;
 
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
@@ -66,8 +69,8 @@ void setup()
   pinMode(NAOH_MON, INPUT);
   pinMode(ALGIZID_PUMP, OUTPUT);
   pinMode(ALGIZID_MON, INPUT);
-  pinMode(PONT_PUMP, OUTPUT);   // must be renamed to PONT_PUMP
-  pinMode(HEAT_PUMP, OUTPUT);   // must be renamed to HEAT_PUMP
+  pinMode(PONT_PUMP, OUTPUT);
+  pinMode(HEAT_PUMP, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
   /*Dosing pumps*/
@@ -79,7 +82,8 @@ void setup()
   PumpPont = new Actuators::Pump_pont(PONT_PUMP);
   PumpHeat = new Actuators::Pump_heat(HEAT_PUMP);
 
-  /*Valves*/
+  /* LED lights*/
+
 
   Tasks.add<Actuators::Temperature>("temperature")
       ->init(DALLAS)
