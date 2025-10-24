@@ -18,9 +18,8 @@ namespace Services
     private:
         class State : public Message
         {
-            Pump_naoh& _parent; // Referenz zur äußeren Klasse
+            Pump_naoh& _parent;
         public:
-            // State(String topic) : Message(topic) {};
             State(Pump_naoh& parent, String topic) : Message(topic), _parent(parent) {}
             bool call(JsonDocument payload);
         };
@@ -34,7 +33,7 @@ namespace Services
             digitalWrite(pump_pin, LOW);
             pinMode(monitor_pin, INPUT);
             digitalWrite(monitor_pin, LOW);
-            msgBroker.registerMessage(new State("inGarden/naoh_pump/state"));
+            msgBroker.registerMessage(new State(*this, "inGarden/naoh_pump/state"));
         };
     };
     bool Pump_naoh::State::call(JsonDocument payload)

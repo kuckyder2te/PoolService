@@ -6,7 +6,7 @@ Project:   Pool Service
 
 https://github.com/Edistechlab/DIY-Heimautomation-Buch/tree/master/Sensoren/Regensensor
 */
-
+/// @cond
 #include <Arduino.h>
 #include <TaskManager.h>
 #include "..\lib\def.h"
@@ -19,12 +19,17 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/messageBroker.h"
 #include "../include/services/temperature.h"
 #include "../include/services/pump_hcl.h"
+#include "../include/services/pump_naoh.h"
+#include "../include/services/pump_algizid.h"
+// #include "../include/services/pump_pont.h"
+// #include "../include/services/pump_heat.h"
 
 #include <ArduinoJson.h>
 #include "..\lib\interface.h"
 #include "..\lib\secrets.h"
 
 #include "..\lib\pump_error.h"
+/// @endcond
 
 Network *_network;
 JsonDocument doc;
@@ -52,82 +57,18 @@ void callback(char *topic, byte *payload, unsigned int length)
   String topicStr(topic); // macht aus dem Topic ein String -> topicStr
 
   if (topicStr.indexOf('/') >= 0)
-  /*prüft ob die Nachricht ein / enthält was ja den Pfad des Topics aufteilt
-  und mindestens eins sollte bei inPump/Egon ja drin sein
-  */
+
   {
     Serial.print("topic = ");
     Serial.println(topic);
-    //  The topic includes a '/', we'll try to read the number of bottles from just after that
+
     topicStr.remove(0, topicStr.indexOf('/') + 1);
-    /*
-      löscht inPump/ so dass in topicStr nur noch Egon übrig bleibt
-    */
+ 
     if (topicStr.indexOf('/') >= 0)
     {
       String rootStr = topicStr.substring(0, topicStr.indexOf('/'));
       Serial.println(rootStr);
-      if (rootStr == "naoh_pump")
-      // {
-      //   switch ((char)payload[0])
-      //   {
-      //   case '0':
-      //     naoh_pump(false);
-      //     break;
-      //   case '1':
-      //     naoh_pump(true);
-      //     break;
-      //   default:
-      //     // Warning !! Undefined payload or not 1/0
-      //     break;
-      //   }
-      // }
-      if (rootStr == "algizid_pump")
-      {
-        switch ((char)payload[0])
-        {
-        case '0':
-          algizid_pump(false);
-          break;
-        case '1':
-          algizid_pump(true);
-          break;
-        default:
-          // Warning !! Undefined payload or not 1/0
-          break;
-        }
-      }
-      else if (rootStr == "pont_pump")
-      {
-        switch ((char)payload[0])
-        {
-        case '0':
-          pont_pump(false);
-          break;
-        case '1':
-          pont_pump(true);
-          break;
-        default:
-          // Warning !! Undefined payload or not 1/0
-          break;
-        }
-      }
-      else if (rootStr == "heat_pump")
-      {
-        switch ((char)payload[0])
-        {
-        case '0':
-          heat_pump(false);
-          break;
-        case '1':
-          heat_pump(true);
-          break;
-        default:
-          // Warning !! Undefined payload or not 1/0
-          break;
-        }
-      }
-      else if (rootStr == "pool_light")
+      if (rootStr == "pool_light")
       {
         topicStr.remove(0, topicStr.indexOf('/') + 1); // delete pool_light from topic
         rootStr = topicStr.substring(0, topicStr.indexOf('/'));
@@ -156,7 +97,7 @@ void callback(char *topic, byte *payload, unsigned int length)
 
         if (rootStr == "colors")
         {
-          topicStr.remove(0, topicStr.indexOf('/') + 1); // delete colors from topic
+          topicStr.remove(0, topicStr.indexOf('/') + 1);
           if (topicStr == "rgb")
           { // should be the rest
             DeserializationError error = deserializeJson(doc, payload);
