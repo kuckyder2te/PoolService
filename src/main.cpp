@@ -44,7 +44,7 @@ HardwareSerial *DebugOutput = &Serial;
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE];
-
+/*
 void callback(char *topic, byte *payload, unsigned int length)
 {
   Serial.print("Message arr  ived [");
@@ -123,7 +123,8 @@ void callback(char *topic, byte *payload, unsigned int length)
       }
     }
   }
-} /*--------------------------------------------------------------------------*/
+} */
+ 
 
 void setup()
 {
