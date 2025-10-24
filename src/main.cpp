@@ -42,6 +42,9 @@ Actuators::Pump_naoh *PumpNaOH;
 Actuators::Pump_hcl *PumpHCl;
 Actuators::Pump_algizid *PumpAlgizid;
 
+Actuators::Pump_pont *PumpPont;
+Actuators::Pump_heat *PumpHeat;
+
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE]; 
@@ -63,13 +66,20 @@ void setup()
   pinMode(NAOH_MON, INPUT);
   pinMode(ALGIZID_PUMP, OUTPUT);
   pinMode(ALGIZID_MON, INPUT);
-  pinMode(RELAY_2, OUTPUT);
-  pinMode(RELAY_3, OUTPUT);
+  pinMode(PONT_PUMP, OUTPUT);   // must be renamed to PONT_PUMP
+  pinMode(HEAT_PUMP, OUTPUT);   // must be renamed to HEAT_PUMP
   pinMode(LED_BUILTIN, OUTPUT);
 
+  /*Dosing pumps*/
   PumpNaOH = new Actuators::Pump_naoh(NAOH_PUMP, NAOH_MON);
   PumpHCl = new Actuators::Pump_hcl(HCL_PUMP, HCL_MON);
   PumpAlgizid = new Actuators::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
+
+  /*220V pumps*/
+  PumpPont = new Actuators::Pump_pont(PONT_PUMP);
+  PumpHeat = new Actuators::Pump_heat(HEAT_PUMP);
+
+  /*Valves*/
 
   Tasks.add<Actuators::Temperature>("temperature")
       ->init(DALLAS)

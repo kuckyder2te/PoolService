@@ -22,7 +22,7 @@
 #define LED_STRIPE_RED    2
 
 #define RELAY_1  26  // NC
-#define RELAY_2  27  // Pont Pump
-#define RELAY_3  14  // Heat Pump
+#define PONT_PUMP  27  // ehem. Relay 2
+#define HEAT_PUMP  14  // Heat Pump
 
 #define DALLAS 19

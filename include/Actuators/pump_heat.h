@@ -10,7 +10,7 @@
 
 namespace Actuators
 {
-    class Heat_pont
+    class Pump_heat
     {
         uint8_t _pump_pin; // to be refactored
      //   uint8_t _monitor_pin;
@@ -18,14 +18,14 @@ namespace Actuators
     private:
         class State : public Message
         {
-            Heat_pont& _parent; // Referenz zur äußeren Klasse
+            Pump_heat& _parent; // Referenz zur äußeren Klasse
         public:
-            State(Heat_pont& parent, String topic) : Message(topic), _parent(parent) {}
+            State(Pump_heat& parent, String topic) : Message(topic), _parent(parent) {}
             bool call(JsonDocument payload);
         };
 
     public:
-        Heat_pont(const uint8_t pump_pin) : _pump_pin(pump_pin)       // changed by Kucky
+        Pump_heat(const uint8_t pump_pin) : _pump_pin(pump_pin)       // changed by Kucky
         {
             LOGGER_NOTICE("Create heat pump");
             pinMode(pump_pin, OUTPUT);
@@ -35,7 +35,7 @@ namespace Actuators
             msgBroker.registerMessage(new State(*this, "inGarden/heat_pump/state"));
         };
     };
-    bool Heat_pont::State::call(JsonDocument payload)
+    bool Pump_heat::State::call(JsonDocument payload)
     {
         if (payload["state"])
         {
