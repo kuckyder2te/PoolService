@@ -25,8 +25,9 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/actuators/pump_heat.h"
 #include "../include/actuators/valve_rinse.h"
 #include "../include/actuators/valve_garden.h"
+#include "../include/actuators/valve_terrace.h"    // Fehlermeldung
 #include "../include/actuators/led_light.h"
-//#include "../include/actuators/valve_terrace.h"    // Fehlermeldung
+
 #include <ArduinoJson.h>
 #include "secrets.h"
 /// @endcond

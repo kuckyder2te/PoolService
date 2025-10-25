@@ -13,7 +13,6 @@ namespace Actuators
     class Valve_garden
     {
         uint8_t _valve_pin; // to be refactored ??
-    //   uint8_t _monitor_pin;
 
     private:
         class State : public Message

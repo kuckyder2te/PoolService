@@ -13,7 +13,6 @@ namespace Actuators
     class Pump_pont
     {
         uint8_t _pump_pin; // to be refactored
-      //uint8_t _monitor_pin;
 
     private:
         // Innere Klasse für die Nachrichtenverarbeitung

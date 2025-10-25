@@ -31,11 +31,8 @@ namespace Actuators
 
         {
             LOGGER_NOTICE("Create LED stripes");
-            pinMode(LED_red_pin, OUTPUT);
             digitalWrite(LED_red_pin, LOW);
-            pinMode(LED_green_pin, INPUT);
             digitalWrite(LED_green_pin, LOW);
-            pinMode(LED_blue_pin, INPUT);
             digitalWrite(LED_blue_pin, LOW);
 
             msgBroker.registerMessage(new State(*this, "inGarden/led_lights/state"));
@@ -45,18 +42,17 @@ namespace Actuators
     {
         if (payload["state"])
         {
-            Serial.println("LED Lights ON");
+            LOGGER_VERBOSE("LED lights ON");
             digitalWrite(_parent._LED_red_pin, HIGH);
             digitalWrite(_parent._LED_green_pin, HIGH);
             digitalWrite(_parent._LED_blue_pin, HIGH);
         }
         else
         {
-            Serial.println("Lights Pump OFF");
+            LOGGER_VERBOSE("LED lights OFF");
             digitalWrite(_parent._LED_red_pin, LOW);
             digitalWrite(_parent._LED_green_pin, LOW);
             digitalWrite(_parent._LED_blue_pin, LOW);
-
         }
         _network->pubMsg("outGarden/Led_lights/state", payload);
         return payload["state"];

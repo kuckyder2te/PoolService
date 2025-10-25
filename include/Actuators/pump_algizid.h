@@ -28,7 +28,7 @@ namespace Actuators
         Pump_algizid(const uint8_t pump_pin, const uint8_t monitor_pin) : _pump_pin(pump_pin), _monitor_pin(monitor_pin)
         
         {
-            LOGGER_NOTICE("Create");
+            LOGGER_NOTICE("Create Algizid pump");
             pinMode(pump_pin, OUTPUT);
             digitalWrite(pump_pin, LOW);
             pinMode(monitor_pin, INPUT);
@@ -40,12 +40,12 @@ namespace Actuators
     {
         if (payload["state"])
         {
-            Serial.println("Algizid Pump ON");
+            LOGGER_NOTICE("Create Algizid ON");
             digitalWrite(_parent._pump_pin, HIGH);
         }
         else
         {
-            Serial.println("Algizid Pump OFF");
+            LOGGER_NOTICE("Algizid Pump OFF");
             digitalWrite(_parent._pump_pin, LOW);
         }
         _network->pubMsg("outGarden/algizid_pump/state", payload);

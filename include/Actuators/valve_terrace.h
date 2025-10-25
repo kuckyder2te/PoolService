@@ -13,7 +13,6 @@ namespace Actuators
     class Valve_terrace
     {
         uint8_t _valve_pin; // to be refactored ??
-    //   uint8_t _monitor_pin;
 
     private:
         class State : public Message
@@ -28,10 +27,10 @@ namespace Actuators
         Valve_terrace(const uint8_t pump_pin) : _valve_pin(pump_pin)
         
         {
-            LOGGER_NOTICE("Create garden valve");
+            LOGGER_NOTICE("Create terrace valve");
             pinMode(pump_pin, OUTPUT);
             digitalWrite(pump_pin, LOW);
-            msgBroker.registerMessage(new State(*this,"inGarden/garden_valve/state"));
+            msgBroker.registerMessage(new State(*this,"inGarden/terrace_valve/state"));
         };
     };
     bool Valve_terrace::State::call(JsonDocument payload)

@@ -10,22 +10,21 @@
 
 namespace Actuators
 {
-    class Valve_terrace
+    class Valve_rinse
     {
         uint8_t _valve_pin; // to be refactored ??
-    //   uint8_t _monitor_pin;
 
     private:
         class State : public Message
         {
-            Valve_terrace& _parent;
+            Valve_rinse& _parent;
         public:
-            State(Valve_terrace& parent, String topic) : Message(topic), _parent(parent) {}
+            State(Valve_rinse& parent, String topic) : Message(topic), _parent(parent) {}
             bool call(JsonDocument payload);
         };
 
     public:
-        Valve_terrace(const uint8_t pump_pin) : _valve_pin(pump_pin)
+        Valve_rinse(const uint8_t pump_pin) : _valve_pin(pump_pin)
         
         {
             LOGGER_NOTICE("Create terrace valve");
@@ -34,7 +33,7 @@ namespace Actuators
             msgBroker.registerMessage(new State(*this,"inGarden/terrace_valve/state"));
         };
     };
-    bool Valve_terrace::State::call(JsonDocument payload)
+    bool Valve_rinse::State::call(JsonDocument payload)
     {
         if (payload["state"])
         {
