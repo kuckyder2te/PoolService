@@ -12,7 +12,7 @@ namespace Actuators
 {
     class Pump_algizid
     {
-        uint8_t _pump_pin; // to be refactored ??
+        uint8_t _pump_pin;
         uint8_t _monitor_pin;
 
     private:

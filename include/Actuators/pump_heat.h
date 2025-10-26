@@ -12,8 +12,7 @@ namespace Actuators
 {
     class Pump_heat
     {
-        uint8_t _pump_pin; // to be refactored
-     //   uint8_t _monitor_pin;
+        uint8_t _pump_pin;
 
     private:
         class State : public Message
@@ -39,12 +38,12 @@ namespace Actuators
     {
         if (payload["state"])
         {
-            Serial.println("Heat Pump ON");
+            LOGGER_NOTICE("Heat Pump ON");
             digitalWrite(_parent._pump_pin, HIGH);
         }
         else
         {
-            Serial.println("Heat Pump OFF");
+            LOGGER_NOTICE("Heat Pump OFF");
             digitalWrite(_parent._pump_pin, LOW);
         }
         // State-Handler registrieren

@@ -12,7 +12,7 @@ namespace Actuators
 {
     class Pump_naoh
     {
-        uint8_t _pump_pin; // to be refactored
+        uint8_t _pump_pin;
         uint8_t _monitor_pin;
 
     private:
@@ -40,13 +40,13 @@ namespace Actuators
     {
         if (payload["state"])
         {
-            Serial.println("NaOh Pump ON");
+            LOGGER_NOTICE("NaOh Pump ON");
             // digitalWrite(Pump_naoh::_pump_pin, HIGH);
             digitalWrite(_parent._pump_pin, HIGH);
         }
         else
         {
-            Serial.println("NaOh Pump OFF");
+            LOGGER_NOTICE("NaOh Pump OFF");
             // digitalWrite(Pump_naoh::_pump_pin, LOW);
             digitalWrite(_parent._pump_pin, LOW);
         }

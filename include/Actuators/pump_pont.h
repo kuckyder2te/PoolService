@@ -12,7 +12,7 @@ namespace Actuators
 {
     class Pump_pont
     {
-        uint8_t _pump_pin; // to be refactored
+        uint8_t _pump_pin;
 
     private:
         // Innere Klasse für die Nachrichtenverarbeitung
@@ -40,12 +40,12 @@ namespace Actuators
     {
         if (payload["state"])
         {
-            Serial.println("Pont Pump ON");
+            LOGGER_NOTICE("Pont Pump ON");
             digitalWrite(_parent._pump_pin, HIGH);
         }
         else
         {
-            Serial.println("Pont Pump OFF");
+            LOGGER_NOTICE("Pont Pump OFF");
             digitalWrite(_parent._pump_pin, LOW);
         }
         _network->pubMsg("outGarden/pont_pump/state", payload);

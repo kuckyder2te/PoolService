@@ -12,7 +12,7 @@ namespace Actuators
 {
     class Valve_rinse
     {
-        uint8_t _valve_pin; // to be refactored ??
+        uint8_t _valve_pin;
 
     private:
         class State : public Message
@@ -37,12 +37,12 @@ namespace Actuators
     {
         if (payload["state"])
         {
-            Serial.println("Terrace valve ON");
+            LOGGER_NOTICE("Terrace valve ON");
             digitalWrite(_parent._valve_pin, HIGH);
         }
         else
         {
-            Serial.println("Terrace valve OFF");
+            LOGGER_NOTICE("Terrace valve OFF");
             digitalWrite(_parent._valve_pin, LOW);
         }
         _network->pubMsg("outGarden/terrace_valve/state", payload);

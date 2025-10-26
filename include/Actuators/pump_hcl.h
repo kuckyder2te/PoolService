@@ -12,7 +12,7 @@ namespace Actuators
 {
     class Pump_hcl
     {
-        uint8_t _pump_pin; // to be refactored
+        uint8_t _pump_pin;
         uint8_t _monitor_pin;
 
     private:
@@ -41,14 +41,12 @@ namespace Actuators
     {
         if (payload["state"])
         {
-            Serial.println("HCl Pump ON");
-            // digitalWrite(Pump_hcl::_pump_pin, HIGH);
+            LOGGER_NOTICE("HCl Pump ON");
             digitalWrite(_parent._pump_pin, HIGH);
         }
         else
         {
-            Serial.println("HCl Pump OFF");
-            // digitalWrite(Pump_hcl::_pump_pin, LOW);
+            LOGGER_NOTICE("HCl Pump OFF");
             digitalWrite(_parent._pump_pin, LOW);
         }
         _network->pubMsg("outGarden/hcl_pump/state", payload);
