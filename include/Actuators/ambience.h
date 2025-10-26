@@ -39,8 +39,8 @@ namespace Actuators
             _r = 0;
             _g = 0;
             _b = 0;
-            msgBroker.registerMessage(new State("/inGarden/ambient/state"));
-            msgBroker.registerMessage(new Color("/inGarden/ambient/color"));
+            msgBroker.registerMessage(new State("inGarden/ambient/state"));
+            msgBroker.registerMessage(new Color("inGarden/ambient/color"));
         }
     };
     uint8_t Ambience::_r;
@@ -62,7 +62,7 @@ namespace Actuators
             analogWrite(LED_STRIPE_GREEN, 255);
             analogWrite(LED_STRIPE_BLUE, 255);
         }
-        return _network->pubMsg("/inGarden/ambient/state", payload);
+        return _network->pubMsg("inGarden/ambient/state", payload);
     }
 
     bool Ambience::Color::call(JsonDocument payload)
@@ -74,7 +74,7 @@ namespace Actuators
         analogWrite(LED_STRIPE_RED, 255 - _r);
         analogWrite(LED_STRIPE_GREEN, 255 - _g);
         analogWrite(LED_STRIPE_BLUE, 255 - _b);
-        return _network->pubMsg("/inGarden/ambient/color", payload);
+        return _network->pubMsg("inGarden/ambient/color", payload);
     }
 
 } // End namespace Actuators
