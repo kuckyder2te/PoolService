@@ -65,14 +65,6 @@ void setup()
 
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
   _network->begin();
-  
-  pinMode(NAOH_PUMP, OUTPUT);
-  pinMode(NAOH_MON, INPUT);
-  pinMode(ALGIZID_PUMP, OUTPUT);
-  pinMode(ALGIZID_MON, INPUT);
-  pinMode(PONT_PUMP, OUTPUT);
-  pinMode(HEAT_PUMP, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
 
   /*Dosing pumps*/
   PumpNaOH = new Actuators::Pump_naoh(NAOH_PUMP, NAOH_MON);
