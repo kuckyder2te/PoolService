@@ -27,10 +27,10 @@ namespace Actuators
         Valve_rinse(const uint8_t pump_pin) : _valve_pin(pump_pin)
         
         {
-            LOGGER_NOTICE("Create terrace valve");
+            LOGGER_NOTICE("Create rinse valve");
             pinMode(pump_pin, OUTPUT);
             digitalWrite(pump_pin, LOW);
-            msgBroker.registerMessage(new State(*this,"inGarden/terrace_valve/state"));
+            msgBroker.registerMessage(new State(*this,"inGarden/rinse_valve/state"));
         };
     };
     bool Valve_rinse::State::call(JsonDocument payload)
@@ -45,7 +45,7 @@ namespace Actuators
             LOGGER_NOTICE("Terrace valve OFF");
             digitalWrite(_parent._valve_pin, LOW);
         }
-        _network->pubMsg("outGarden/terrace_valve/state", payload);
+        _network->pubMsg("outGarden/rinse_valve/state", payload);
         return payload["state"];
     };
 }// End namespace Actuators

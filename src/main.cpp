@@ -27,6 +27,7 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/actuators/valve_garden.h"
 #include "../include/actuators/valve_terrace.h"
 #include "../include/actuators/ambience.h"
+#include "../include/actuators/pumpError.h"
 
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -38,7 +39,7 @@ JsonDocument doc;
 HardwareSerial *TestOutput = &Serial;
 HardwareSerial *DebugOutput = &Serial;
 
-MessageBroker msgBroker;  // Change by Kucky Chat GPT
+MessageBroker msgBroker; // Change by Kucky Chat GPT
 
 Actuators::Pump_naoh *PumpNaOH;
 Actuators::Pump_hcl *PumpHCl;
@@ -51,12 +52,12 @@ Actuators::Ambience *LEDLights;
 
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
-char msg[MSG_BUFFER_SIZE]; 
+char msg[MSG_BUFFER_SIZE];
 
 void setup()
 {
   delay(2000);
-   DebugOutput->begin(DEBUG_SPEED);
+  DebugOutput->begin(DEBUG_SPEED);
   Logger::setOutputFunction(&MyLoggerOutput::localLogger);
   Logger::setLogLevel(Logger::DEBUG); // Muss immer einen Wert in platformio.ini haben (SILENT)
   delay(500);                         // For switching on Serial Monitor
@@ -71,7 +72,6 @@ void setup()
   PumpHCl = new Actuators::Pump_hcl(HCL_PUMP, HCL_MON);
   PumpAlgizid = new Actuators::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
 
-  
   /*220V pumps*/
   PumpPont = new Actuators::Pump_pont(PONT_PUMP);
   PumpHeat = new Actuators::Pump_heat(HEAT_PUMP);
@@ -82,6 +82,10 @@ void setup()
   Tasks.add<Actuators::Temperature>("temperature")
       ->init(DALLAS)
       ->startFps(0.017); // ~ 1 minute
+
+  Tasks.add<Actuators::pumpError>("pumpError")
+      ->init(ALGIZID_MON, HCL_MON, NAOH_MON)
+      ->startFps(1);
 
   msgBroker.printTopics();
   LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");

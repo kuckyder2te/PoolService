@@ -24,8 +24,7 @@ namespace Actuators
         };
 
     public:
-        Valve_terrace(const uint8_t pump_pin) : _valve_pin(pump_pin)
-        
+        Valve_terrace(const uint8_t pump_pin) : _valve_pin(pump_pin)      
         {
             LOGGER_NOTICE("Create terrace valve");
             pinMode(pump_pin, OUTPUT);
@@ -37,15 +36,15 @@ namespace Actuators
     {
         if (payload["state"])
         {
-            LOGGER_NOTICE("Rinse valve ON");
+            LOGGER_NOTICE("terrace valve ON");
             digitalWrite(_parent._valve_pin, HIGH);
         }
         else
         {
-            LOGGER_NOTICE("Rinse valve OFF");
+            LOGGER_NOTICE("Terrance valve OFF");
             digitalWrite(_parent._valve_pin, LOW);
         }
-        _network->pubMsg("outGarden/garden_valve/state", payload);
+        _network->pubMsg("outGarden/terrace_valve/state", payload);
         return payload["state"];
     };
 }// End namespace Actuators

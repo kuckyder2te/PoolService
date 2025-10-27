@@ -37,12 +37,12 @@ namespace Actuators
     {
         if (payload["state"])
         {
-            LOGGER_NOTICE("Rinse valve ON");
+            LOGGER_NOTICE("Garden valve ON");
             digitalWrite(_parent._valve_pin, HIGH);
         }
         else
         {
-            LOGGER_NOTICE("Rinse valve OFF");
+            LOGGER_NOTICE("Garden valve OFF");
             digitalWrite(_parent._valve_pin, LOW);
         }
         _network->pubMsg("outGarden/garden_valve/state", payload);

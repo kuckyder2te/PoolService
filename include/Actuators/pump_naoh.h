@@ -28,7 +28,7 @@ namespace Actuators
         Pump_naoh(const uint8_t pump_pin, const uint8_t monitor_pin) : _pump_pin(pump_pin), _monitor_pin(monitor_pin)
         
         {
-            LOGGER_NOTICE("Create");
+            LOGGER_NOTICE("Create NaOH pumps");
             pinMode(pump_pin, OUTPUT);
             digitalWrite(pump_pin, LOW);
             pinMode(monitor_pin, INPUT);
@@ -41,13 +41,11 @@ namespace Actuators
         if (payload["state"])
         {
             LOGGER_NOTICE("NaOh Pump ON");
-            // digitalWrite(Pump_naoh::_pump_pin, HIGH);
             digitalWrite(_parent._pump_pin, HIGH);
         }
         else
         {
             LOGGER_NOTICE("NaOh Pump OFF");
-            // digitalWrite(Pump_naoh::_pump_pin, LOW);
             digitalWrite(_parent._pump_pin, LOW);
         }
         _network->pubMsg("outGarden/naoh_pump/state", payload);
