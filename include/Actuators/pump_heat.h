@@ -28,9 +28,6 @@ namespace Actuators
         {
             LOGGER_NOTICE("Create heat pump");
             pinMode(pump_pin, OUTPUT);
-            digitalWrite(pump_pin, LOW);
-            // pinMode(monitor_pin, INPUT);
-            // digitalWrite(monitor_pin, LOW);
             msgBroker.registerMessage(new State(*this, "inGarden/heat_pump/state"));
         };
     };

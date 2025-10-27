@@ -1,39 +1,219 @@
+# Pool Service
+Controller for pool
 
-This directory is intended for project header files.
+## Overview
+This project is an Arduino-based application for the ESP32 that controls various modules including pumps, LEDs, temperatur sensor, and MQTT network communication. It uses PlatformIO as the build system.
 
-A header file is a file containing C declarations and macro definitions
-to be shared between several project source files. You request the use of a
-header file in your project source file (C, C++, etc) located in `src` folder
-by including it, with the C preprocessing directive `#include'.
+## Features
+- Chemicals are added using 3 12V peristaltic pumps.
+- RGB LED strips for color gradients and ambience
+- Temperature measurement in the pool
+- Considered pH measurement in the pool in the pool
+- MQTT communication for remote control
+- Task-based architecture using TaskManager
 
-```src/main.c
+## Hardware
+![Motherboard](/pictures/Motherboard.png)
 
-#include "header.h"
+### Microcontroller
+- ESP32 upesy_wroom
 
-int main (void)
-{
- ...
-}
+### Connectors
+#### J1 - 5V supply
+| PIN | Signal |
+|--1--|--+12V--|
+|--2--|--GND---|
+|--3--|--+5V---|
+
+#### J2 - aux 12V out
+| PIN | Signal |
+|--1--|--+12V--|
+|--2--|--GND---|
+|--3--|--+5V---|
+
+#### J3 - Safety jumper
+| PIN | Signal |
+|--1--|-----|
+|--2--|-----|
+
+#### J4 - 12V In main
+| PIN | Signal |
+|--1--|---J3---|
+|--2--|+12V IN-|
+
+#### J5 - HCl pump
+| PIN | Signal |
+|--1--|--C Q1--|
+|--2--|+12V IN-|
+
+#### J6 - NaOH pump
+| PIN | Signal |
+|--1--|--C Q2--|
+|--2--|+12V IN-|
+
+#### J7 - Algizid pump
+| PIN | Signal |
+|--1--|--C Q3--|
+|--2--|+12V IN-|
+
+#### J8 - not not there
+
+#### J9 - aux I°C 
+| PIN | Signal |
+|--1--|--3V3---|
+|--2--|--GND---|
+|--3--|--SCL---|
+|--4--|--SDA---|
+
+#### J10 - Relays
+| PIN | Signal |
+|--1--|--NC----|
+|--2--|--PONT--|
+|--3--|--HEAT--|
+|--4--|--GND---|
+|--5--|--5V----|
+
+#### J11 - Dallas temperature sensor
+|--1--|--3V3---|
+|--2--|-Signal-|
+|--3--|--GND---|
+
+#### J12 - LED stripes
+| PIN |  Signal   |
+|--1--|----GND----|
+|--2--|-LED red---|
+|--3--|-LED blue--|
+|--4--|-LED green-|
+|--5--|----5V-----|
+
+
+## Software Architecture
+The project follows a modular design with the following key components:
+
+- **LED Control**: PWM-based brightness control for LEDs
+- **Task Management**: Using TaskManager for concurrent module operation
+- **Network Communication**: MQTT protocol for remote control
+- **Message Broker**: Centralized message handling system
+
+### Network Configuration (secrets.h)
+```cpp
+#define SID "Your_WiFi_SSID"
+#define PASSWORD "Your_WiFi_Password"
+#define BROKER "MQTT_Broker_IP"
+#define USER "MQTT_Username"
+#define PW "MQTT_Password"
 ```
 
-Including a header file produces the same results as copying the header file
-into each source file that needs it. Such copying would be time-consuming
-and error-prone. With a header file, the related declarations appear
-in only one place. If they need to be changed, they can be changed in one
-place, and programs that include the header file will automatically use the
-new version when next recompiled. The header file eliminates the labor of
-finding and changing all the copies as well as the risk that a failure to
-find one copy will result in inconsistencies within a program.
+## MQTT Topics
+The system uses the following MQTT topics for communication:
 
-In C, the usual convention is to give header files names that end with `.h'.
-It is most portable to use only letters, digits, dashes, and underscores in
-header file names, and at most one dot.
+- `inGarden/#` - Incoming commands
+- `outGarden/#` - Outgoing status updates
 
-Read more about using header files in official GCC documentation:
+### Supported Commands
 
-* Include Syntax
-* Include Operation
-* Once-Only Headers
-* Computed Includes
+- `inGarden/algizid_hclpump/state` - Control algizid pumo ON/OFF
+- `inGarden/hcl_pump/state` - Control HCL pumo ON/OFF
+- `inGarden/naoh_pump/state` - Control NaOH pumo ON/OFF
+- `inGarden/garden_valve/state` - Control garden valve for watering
+- `inGarden/rinse_valve/state` - Control rinse valve for pool
+- `inGarden/terrace_valve/state` - Control terrace valve for watering
 
-https://gcc.gnu.org/onlinedocs/cpp/Header-Files.html
+- `inGarden/controller/config` - Controller configuration endpoint
+
+- ´outGarden/naoh_algizid", "false"´ - Indicates when a pump is switched off but is actually still running.
+- ´outGarden/naoh_hcl", "false"´ -
+- ´outGarden/naoh_error", "false"´ - 
+
+### Controller Configuration
+The controller now supports dynamic configuration through MQTT messages. The new configuration endpoint allows sending JSON payloads to `inHome/controller/config` which will be processed and acknowledged with a response on `outHome/controller/config`.
+
+## Building and Flashing
+1. Install PlatformIO
+2. Configure your network settings in `src/secrets.h`
+3. Build and upload using PlatformIO
+
+
+class pumpError : public Task::Base
+{
+    PubSubClient *_client;
+    char msg[30];
+
+public:
+    pumpError(const String &name)
+        : Task::Base(name)
+    {
+    }
+
+    pumpError *setClient(PubSubClient *client)
+    {
+        _client = client;
+        return this;
+    }
+
+    virtual void begin() override
+    {
+        Serial.println("Pump errors");
+    }
+
+    virtual void update() override
+    {
+        static bool algizid_err = true;
+        static bool hcl_err = true;
+        static bool naoh_err = true;
+
+        {
+            if (digitalRead(ALGIZID_MON) == digitalRead(ALGIZID_PUMP))
+            {
+                if (!algizid_err)
+                {
+                    client.publish("outGarden/algizid_error", "true");
+                }
+                algizid_err = true;
+            }
+            else
+            {
+                if (algizid_err)
+                {
+                    client.publish("outGarden/algizid_error", "false");
+                }
+                algizid_err = false;
+            }
+
+            if (digitalRead(HCL_MON) == digitalRead(HCL_PUMP))
+            {
+                if (!hcl_err)
+                {
+                    client.publish("outGarden/hcl_error", "true");
+                }
+                hcl_err = true;
+            }
+            else
+            {
+                if (hcl_err)
+                {
+                    client.publish("outGarden/hcl_error", "false");
+                }
+                hcl_err = false;
+            }
+
+            if (digitalRead(NAOH_MON) == digitalRead(NAOH_PUMP))
+            {
+                if (!naoh_err)
+                {
+                    client.publish("outGarden/naoh_error", "true");
+                }
+                naoh_err = true;
+            }
+            else
+            {
+                if (naoh_err)
+                {
+                    client.publish("outGarden/naoh_error", "false");
+                }
+                naoh_err = false;
+            }
+
+        }
+    }
+};

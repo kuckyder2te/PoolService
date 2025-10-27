@@ -51,4 +51,4 @@ namespace Actuators
         _network->pubMsg("outGarden/algizid_pump/state", payload);
         return payload["state"];
     };
-}
+} // namespace Actuators

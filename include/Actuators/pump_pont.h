@@ -25,8 +25,8 @@ namespace Actuators
         };
 
     public:
-        //Pump_pont(const uint8_t pump_pin, const uint8_t monitor_pin) : _pump_pin(pump_pin), _monitor_pin(monitor_pin)
-       Pump_pont(const uint8_t pump_pin) : _pump_pin(pump_pin)   // changed by Kucky
+        // Pump_pont(const uint8_t pump_pin, const uint8_t monitor_pin) : _pump_pin(pump_pin), _monitor_pin(monitor_pin)
+        Pump_pont(const uint8_t pump_pin) : _pump_pin(pump_pin) // changed by Kucky
         {
             LOGGER_NOTICE("Create pond pump");
             pinMode(pump_pin, OUTPUT);
@@ -51,4 +51,4 @@ namespace Actuators
         _network->pubMsg("outGarden/pont_pump/state", payload);
         return payload["state"];
     };
-} // namespace Actuators
+} // End namespace Actuators
