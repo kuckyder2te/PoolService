@@ -58,7 +58,7 @@ This project is an Arduino-based application for the ESP32 that controls various
 
 #### J8 - not not there
 
-#### J9 - aux I°C 
+#### J9 - aux I°C not in use
 | PIN | Signal |
 |--1--|--3V3---|
 |--2--|--GND---|
@@ -66,12 +66,12 @@ This project is an Arduino-based application for the ESP32 that controls various
 |--4--|--SDA---|
 
 #### J10 - Relays
-| PIN | Signal |
-|--1--|--NC----|
-|--2--|--PONT--|
-|--3--|--HEAT--|
-|--4--|--GND---|
-|--5--|--5V----|
+| PIN | Signal | Color |
+|--1--|--NC----|-------|
+|--2--|--PONT--|-------|
+|--3--|--HEAT--|-------|
+|--4--|--GND---|-------|
+|--5--|--5V----|-------|
 
 #### J11 - Dallas temperature sensor
 |--1--|--3V3---|
@@ -79,12 +79,12 @@ This project is an Arduino-based application for the ESP32 that controls various
 |--3--|--GND---|
 
 #### J12 - LED stripes
-| PIN |  Signal   |
-|--1--|----GND----|
-|--2--|-LED red---|
-|--3--|-LED blue--|
-|--4--|-LED green-|
-|--5--|----5V-----|
+| PIN |  Signal   | Color |
+|--1--|----GND----|-------|
+|--2--|-LED red---|-------|
+|--3--|-LED blue--|-------|
+|--4--|-LED green-|-------|
+|--5--|----5V-----|-------|
 
 
 ## Software Architecture
@@ -119,14 +119,16 @@ The system uses the following MQTT topics for communication:
 - `inGarden/rinse_valve/state` - Control rinse valve for pool
 - `inGarden/terrace_valve/state` - Control terrace valve for watering
 
+- Protection against uncontrolled pump action. -
+- e.g. A pump PIN is HIGH (it means, the pump is off), but the pump is still running.
+- `outGarden/algizid_error", "false"`
+- `outGarden/naoh_error", "false"`
+- `outGarden/hcl_error", "false"`
+
 - `inGarden/controller/config` - Controller configuration endpoint
 
-- ´outGarden/naoh_algizid", "false"´ - Indicates when a pump is switched off but is actually still running.
-- ´outGarden/naoh_hcl", "false"´ -
-- ´outGarden/naoh_error", "false"´ - 
-
 ### Controller Configuration
-The controller now supports dynamic configuration through MQTT messages. The new configuration endpoint allows sending JSON payloads to `inHome/controller/config` which will be processed and acknowledged with a response on `outHome/controller/config`.
+The controller now supports dynamic configuration through MQTT messages. The new configuration endpoint allows sending JSON payloads to `inGarden/controller/config` which will be processed and acknowledged with a response on `outGarden/controller/config`.
 
 ## Building and Flashing
 1. Install PlatformIO

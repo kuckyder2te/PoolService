@@ -25,14 +25,14 @@ namespace Actuators
         };
 
     public:
-        Pump_naoh(const uint8_t pump_pin, const uint8_t monitor_pin) : _pump_pin(pump_pin), _monitor_pin(monitor_pin)
+        Pump_naoh(const uint8_t pump_pin) : _pump_pin(pump_pin)
         
         {
             LOGGER_NOTICE("Create NaOH pumps");
             pinMode(pump_pin, OUTPUT);
             digitalWrite(pump_pin, LOW);
-            pinMode(monitor_pin, INPUT);
-            digitalWrite(monitor_pin, LOW);
+            // pinMode(monitor_pin, INPUT);
+            // digitalWrite(monitor_pin, LOW);
             msgBroker.registerMessage(new State(*this, "inGarden/naoh_pump/state"));
         };
     };

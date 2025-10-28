@@ -68,7 +68,7 @@ void setup()
   _network->begin();
 
   /*Dosing pumps*/
-  PumpNaOH = new Actuators::Pump_naoh(NAOH_PUMP, NAOH_MON);
+  PumpNaOH = new Actuators::Pump_naoh(NAOH_PUMP);
   PumpHCl = new Actuators::Pump_hcl(HCL_PUMP, HCL_MON);
   PumpAlgizid = new Actuators::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
 
@@ -84,7 +84,7 @@ void setup()
       ->startFps(0.017); // ~ 1 minute
 
   Tasks.add<Actuators::pumpError>("pumpError")
-      ->init(ALGIZID_MON, HCL_MON, NAOH_MON)
+    //  ->init(ALGIZID_MON, HCL_MON, NAOH_MON)
       ->startFps(1);
 
   msgBroker.printTopics();
