@@ -84,7 +84,7 @@ void setup()
       ->startFps(0.017); // ~ 1 minute
 
   Tasks.add<Actuators::pumpError>("pumpError")
-    //  ->init(ALGIZID_MON, HCL_MON, NAOH_MON)
+      ->init(ALGIZID_PUMP, HCL_PUMP, NAOH_PUMP, ALGIZID_MON, HCL_MON, NAOH_MON)
       ->startFps(1);
 
   msgBroker.printTopics();

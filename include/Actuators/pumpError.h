@@ -17,6 +17,12 @@ namespace Actuators
     {
         PubSubClient *_client;
         char msg[30];
+        uint8_t _pin_algizid;
+        uint8_t _pin_algizid_mon;
+        uint8_t _pin_naoh;
+        uint8_t _pin_naoh_mon;
+        uint8_t _pin_hcl;
+        uint8_t _pin_hcl_mon;
 
     public:
         pumpError(const String &name)
@@ -24,13 +30,21 @@ namespace Actuators
         {
         }
 
-        // pumpError *init(const uint8_t pin_algizid, const uint8_t pin_hcl, const uint8_t pin_naoh)
-        // {
-        //     LOGGER_VERBOSE("enter ...");
+        pumpError *init(const uint8_t pin_algizid, const uint8_t pin_algizid_mon,
+                        const uint8_t pin_hcl_mon, const uint8_t pin_hcl,
+                        const uint8_t pin_naoh_mon, const uint8_t pin_naoh)
+        {
+            LOGGER_VERBOSE("enter ...");
+            _pin_algizid = pin_algizid;
+            _pin_algizid_mon = pin_algizid_mon;
+            _pin_naoh = pin_naoh;
+            _pin_naoh_mon = pin_naoh_mon;
+            _pin_hcl = pin_hcl;
+            _pin_hcl_mon = pin_hcl_mon;
 
-        //     LOGGER_VERBOSE("leave ...");
-        //     return this;
-        // }
+            LOGGER_VERBOSE("leave ...");
+            return this;
+        }
 
         virtual void begin() override
         {
@@ -43,7 +57,7 @@ namespace Actuators
             static bool hcl_err = false;
             static bool naoh_err = false;
 
-            if (digitalRead(ALGIZID_MON) == digitalRead(ALGIZID_PUMP))
+            if (digitalRead(_pin_algizid_mon) == digitalRead(_pin_algizid))
             {
                 algizid_err = false; // No malfunction
                 _network->pubMsg("outGarden/algizid_error", "false");
@@ -54,7 +68,7 @@ namespace Actuators
                 _network->pubMsg("outGarden/algizid_error", "true");
             }
 
-            if (digitalRead(NAOH_MON) == digitalRead(NAOH_PUMP))
+            if (digitalRead(_pin_naoh_mon) == digitalRead(_pin_naoh))
             {
                 naoh_err = false; // No malfunction
                 _network->pubMsg("outGarden/naoh_error", "false");
@@ -65,7 +79,7 @@ namespace Actuators
                 _network->pubMsg("outGarden/naoh_error", "true");
             }
 
-            if (digitalRead(HCL_MON) == digitalRead(HCL_PUMP))
+            if (digitalRead(_pin_hcl_mon) == digitalRead(_pin_hcl))
             {
                 algizid_err = false; // No malfunction
                 _network->pubMsg("outGarden/hcl_error", "false");
@@ -75,57 +89,6 @@ namespace Actuators
                 algizid_err = true; // Malfunktion   must this be?
                 _network->pubMsg("outGarden/hcl_error", "true");
             }
-
-            // if (digitalRead(ALGIZID_MON) == digitalRead(ALGIZID_PUMP))
-            // {
-            //     if (!algizid_err)
-            //     {
-            //         _network->pubMsg("outGarden/algizid_error", "true");
-            //     }
-            //     algizid_err = true;
-            // }
-            // else
-            // {
-            //     if (algizid_err)
-            //     {
-            //         _network->pubMsg("outGarden/algizid_error", "false");
-            //     }
-            //     algizid_err = false;
-            // }  //---------------------------------------------------------------------
-
-            // if (digitalRead(HCL_MON) == digitalRead(HCL_PUMP))
-            // {
-            //     if (!hcl_err)
-            //     {
-            //         _network->pubMsg("outGarden/hcl_error", "true");
-            //     }
-            //     hcl_err = true;
-            // }
-            // else
-            // {
-            //     if (hcl_err)
-            //     {
-            //         _network->pubMsg("outGarden/hcl_error", "false");
-            //     }
-            //     hcl_err = false;
-            // }
-
-            // if (digitalRead(NAOH_MON) == digitalRead(NAOH_PUMP))
-            // {
-            //     if (!naoh_err)
-            //     {
-            //         _network->pubMsg("outGarden/naoh_error", "true");
-            //     }
-            //     naoh_err = true;
-            // }
-            // else
-            // {
-            //     if (naoh_err)
-            //     {
-            //         _network->pubMsg("outGarden/naoh_error", "false");
-            //     }
-            //     naoh_err = false;
-            // }
         }
     };
 } // End namespace Actuators
