@@ -8,7 +8,7 @@
 #include "../message.h"
 #include "../messageBroker.h"
 
-namespace Actuators
+namespace Services
 {
     class Ambience
     {
@@ -77,4 +77,4 @@ namespace Actuators
         return _network->pubMsg("inGarden/ambient/color", payload);
     }
 
-} // End namespace Actuators
+} // End namespace Services

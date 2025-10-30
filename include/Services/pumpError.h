@@ -11,7 +11,7 @@
 
 extern Network *_network;
 
-namespace Actuators
+namespace Services
 {
     class pumpError : public Task::Base
     {
@@ -30,7 +30,7 @@ namespace Actuators
         {
         }
 
-        pumpError *init(const uint8_t pin_algizid, const uint8_t pin_algizid_mon,
+        pumpError *init(const uint8_t pin_algizid_mon, const uint8_t pin_algizid,
                         const uint8_t pin_hcl_mon, const uint8_t pin_hcl,
                         const uint8_t pin_naoh_mon, const uint8_t pin_naoh)
         {
@@ -60,7 +60,7 @@ namespace Actuators
             if (digitalRead(_pin_algizid_mon) == digitalRead(_pin_algizid))
             {
                 algizid_err = false; // No malfunction
-                _network->pubMsg("outGarden/algizid_error", "false");
+                _network->pubMsg("outGarden/algizid_error", "false");   // this is not clearly
             }
             else
             {
@@ -91,4 +91,4 @@ namespace Actuators
             }
         }
     };
-} // End namespace Actuators
+} // End namespace Services

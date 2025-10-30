@@ -8,7 +8,7 @@
 #include "../message.h"
 #include "../messageBroker.h"
 
-namespace Actuators
+namespace Services
 {
     class Pump_naoh
     {
@@ -51,4 +51,4 @@ namespace Actuators
         _network->pubMsg("outGarden/naoh_pump/state", payload);
         return payload["state"];
     };
-} // END namespace Actuators
+} // END namespace Services

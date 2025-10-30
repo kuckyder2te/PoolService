@@ -17,17 +17,17 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 
 #include "../include/network.h"
 #include "../include/messageBroker.h"
-#include "../include/actuators/temperature.h"
-#include "../include/actuators/pump_hcl.h"
-#include "../include/actuators/pump_naoh.h"
-#include "../include/actuators/pump_algizid.h"
-#include "../include/actuators/pump_pont.h"
-#include "../include/actuators/pump_heat.h"
-#include "../include/actuators/valve_rinse.h"
-#include "../include/actuators/valve_garden.h"
-#include "../include/actuators/valve_terrace.h"
-#include "../include/actuators/ambience.h"
-#include "../include/actuators/pumpError.h"
+#include "../include/Services/temperature.h"
+#include "../include/Services/pump_hcl.h"
+#include "../include/Services/pump_naoh.h"
+#include "../include/Services/pump_algizid.h"
+#include "../include/Services/pump_pont.h"
+#include "../include/Services/pump_heat.h"
+#include "../include/Services/valve_rinse.h"
+#include "../include/Services/valve_garden.h"
+#include "../include/Services/valve_terrace.h"
+#include "../include/Services/ambience.h"
+#include "../include/Services/pumpError.h"
 
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -41,14 +41,14 @@ HardwareSerial *DebugOutput = &Serial;
 
 MessageBroker msgBroker; // Change by Kucky Chat GPT
 
-Actuators::Pump_naoh *PumpNaOH;
-Actuators::Pump_hcl *PumpHCl;
-Actuators::Pump_algizid *PumpAlgizid;
+Services::Pump_naoh *PumpNaOH;
+Services::Pump_hcl *PumpHCl;
+Services::Pump_algizid *PumpAlgizid;
 
-Actuators::Pump_pont *PumpPont;
-Actuators::Pump_heat *PumpHeat;
+Services::Pump_pont *PumpPont;
+Services::Pump_heat *PumpHeat;
 
-Actuators::Ambience *LEDLights;
+Services::Ambience *LEDLights;
 
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
@@ -68,24 +68,24 @@ void setup()
   _network->begin();
 
   /*Dosing pumps*/
-  PumpNaOH = new Actuators::Pump_naoh(NAOH_PUMP);
-  PumpHCl = new Actuators::Pump_hcl(HCL_PUMP, HCL_MON);
-  PumpAlgizid = new Actuators::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
+  PumpNaOH = new Services::Pump_naoh(NAOH_PUMP);
+  PumpHCl = new Services::Pump_hcl(HCL_PUMP, HCL_MON);
+  PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
 
   /*220V pumps*/
-  PumpPont = new Actuators::Pump_pont(PONT_PUMP);
-  PumpHeat = new Actuators::Pump_heat(HEAT_PUMP);
+  PumpPont = new Services::Pump_pont(PONT_PUMP);
+  PumpHeat = new Services::Pump_heat(HEAT_PUMP);
 
   /* LED lights*/
-  LEDLights = new Actuators::Ambience(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);
+  LEDLights = new Services::Ambience(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);
 
-  Tasks.add<Actuators::Temperature>("temperature")
+  Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
       ->startFps(0.017); // ~ 1 minute
 
-  Tasks.add<Actuators::pumpError>("pumpError")
+  Tasks.add<Services::pumpError>("pumpError")
       ->init(ALGIZID_PUMP, HCL_PUMP, NAOH_PUMP, ALGIZID_MON, HCL_MON, NAOH_MON)
-      ->startFps(1);
+      ->startFps(0.5);
 
   msgBroker.printTopics();
   LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");
