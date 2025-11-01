@@ -15,14 +15,31 @@ namespace Services
 {
     class pumpError : public Task::Base
     {
-        PubSubClient *_client;
-        char msg[30];
+        // PubSubClient *_client;
+        // char msg[30];
         uint8_t _pin_algizid;
-        uint8_t _pin_algizid_mon;
+        uint8_t _pin_algizid_mon; // Is that necessary?  Kucky
         uint8_t _pin_naoh;
         uint8_t _pin_naoh_mon;
         uint8_t _pin_hcl;
         uint8_t _pin_hcl_mon;
+
+    private:
+        struct PumpInfo
+        {
+            uint8_t pumpPin;
+            uint8_t monitorPin;
+            const char *name;
+            bool lastError = false;
+            uint8_t stableCount = 0;
+            bool lastMonitorState = false;
+        };
+
+        static const uint8_t NUM_PUMPS = 3;
+        PumpInfo pumps[NUM_PUMPS];
+
+        // wie viele aufeinanderfolgende gleiche Werte nötig sind, um stabil zu sein
+        static const uint8_t debounceLimit = 3;
 
     public:
         pumpError(const String &name)
@@ -34,7 +51,7 @@ namespace Services
                         const uint8_t pin_hcl_mon, const uint8_t pin_hcl,
                         const uint8_t pin_naoh_mon, const uint8_t pin_naoh)
         {
-            LOGGER_VERBOSE("enter ...");
+            LOGGER_VERBOSE("enter ..."); // Is that necessary?  Kucky
             _pin_algizid = pin_algizid;
             _pin_algizid_mon = pin_algizid_mon;
             _pin_naoh = pin_naoh;
@@ -59,8 +76,8 @@ namespace Services
 
             if (digitalRead(_pin_algizid_mon) == digitalRead(_pin_algizid))
             {
-                algizid_err = false; // No malfunction
-                _network->pubMsg("outGarden/algizid_error", "false");   // this is not clearly
+                algizid_err = false;                                  // No malfunction
+                _network->pubMsg("outGarden/algizid_error", "false"); // this is not clearly
             }
             else
             {
