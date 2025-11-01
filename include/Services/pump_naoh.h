@@ -18,15 +18,16 @@ namespace Services
     private:
         class State : public Message
         {
-            Pump_naoh& _parent;
+            Pump_naoh &_parent;
+
         public:
-            State(Pump_naoh& parent, String topic) : Message(topic), _parent(parent) {}
+            State(Pump_naoh &parent, String topic) : Message(topic), _parent(parent) {}
             bool call(JsonDocument payload);
         };
 
     public:
         Pump_naoh(const uint8_t pump_pin) : _pump_pin(pump_pin)
-        
+
         {
             LOGGER_NOTICE("Create NaOH pumps");
             pinMode(pump_pin, OUTPUT);

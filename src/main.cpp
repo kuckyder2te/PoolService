@@ -17,17 +17,17 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 
 #include "../include/network.h"
 #include "../include/messageBroker.h"
-#include "../include/Services/temperature.h"
-#include "../include/Services/pump_hcl.h"
-#include "../include/Services/pump_naoh.h"
-#include "../include/Services/pump_algizid.h"
-#include "../include/Services/pump_pont.h"
-#include "../include/Services/pump_heat.h"
-#include "../include/Services/valve_rinse.h"
-#include "../include/Services/valve_garden.h"
-#include "../include/Services/valve_terrace.h"
-#include "../include/Services/ambience.h"
-#include "../include/Services/pumpError.h"
+#include "../include/services/temperature.h"
+#include "../include/services/pump_hcl.h"
+#include "../include/services/pump_naoh.h"
+#include "../include/services/pump_algizid.h"
+#include "../include/services/pump_pont.h"
+#include "../include/services/pump_heat.h"
+#include "../include/services/valve_rinse.h"
+#include "../include/services/valve_garden.h"
+#include "../include/services/valve_terrace.h"
+#include "../include/services/ambience.h"
+#include "../include/services/pumpError.h"
 
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -84,7 +84,7 @@ void setup()
       ->startFps(0.017); // ~ 1 minute
 
   Tasks.add<Services::pumpError>("pumpError")
-      ->init(ALGIZID_PUMP, HCL_PUMP, NAOH_PUMP, ALGIZID_MON, HCL_MON, NAOH_MON)
+      ->init(ALGIZID_MON, ALGIZID_PUMP, HCL_MON, HCL_PUMP, NAOH_MON,  NAOH_PUMP)
       ->startFps(0.5);
 
   msgBroker.printTopics();
