@@ -26,7 +26,7 @@ namespace Services
         };
 
     public:
-        Pump_algizid(const uint8_t pump_pin, const uint8_t monitor_pin) : _pump_pin(pump_pin), _monitor_pin(monitor_pin)
+        Pump_algizid(const uint8_t pump_pin) : _pump_pin(pump_pin)
 
         {
             LOGGER_NOTICE_FMT("Create Algizid pumps on Pin: %d", pump_pin);
