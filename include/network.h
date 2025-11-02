@@ -118,7 +118,10 @@ public:
         //LOGGER_NOTICE_FMT("%s - %s", topic, String(payload["payload"]).c_str());  // Fehler
         String output;
         serializeJson(payload, output);
-        return _mqtt_client->publish(topic, output.c_str());
+        String Topic = ROOT_OUT_TOPIC"/";
+        Topic += topic;
+        Serial.println(Topic);
+        return _mqtt_client->publish(Topic.c_str(), output.c_str());
     }
 
 private:
