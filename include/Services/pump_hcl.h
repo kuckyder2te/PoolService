@@ -29,17 +29,18 @@ namespace Services
     public:
         Pump_hcl(const uint8_t pump_pin, const uint8_t monitor_pin) : _pump_pin(pump_pin), _monitor_pin(monitor_pin)
         {
-            LOGGER_NOTICE("Create HCL pump");
+            LOGGER_NOTICE_FMT("Create HCL pump on Pin: %d",pump_pin);
             pinMode(pump_pin, OUTPUT);
             digitalWrite(pump_pin, LOW);
             pinMode(monitor_pin, INPUT);
             digitalWrite(monitor_pin, LOW);
-            msgBroker.registerMessage(new State(*this, "inGarden/hcl_pump/state"));
+            msgBroker.registerMessage(new State(*this, "hcl_pump/state"));
         };
     };
     bool Pump_hcl::State::call(JsonDocument payload)
     {
-        if (payload["state"])
+        if(payload.is<bool>()){
+            if (payload.as<bool>())
         {
             LOGGER_NOTICE("HCl Pump ON");
             digitalWrite(_parent._pump_pin, HIGH);
@@ -49,7 +50,12 @@ namespace Services
             LOGGER_NOTICE("HCl Pump OFF");
             digitalWrite(_parent._pump_pin, LOW);
         }
-        _network->pubMsg("outGarden/hcl_pump/state", payload);
-        return payload["state"];
+
+        _network->pubMsg("hcl_pump/state", payload);
+    }else{
+        LOGGER_WARNING("Payload not bool");     //Improve by sending error code as mqtt message
+        return false;
+    }
+        return true;
     };
 } //End namespace Services

@@ -27,29 +27,31 @@ namespace Services
 
     public:
         Pump_naoh(const uint8_t pump_pin) : _pump_pin(pump_pin)
-
         {
-            LOGGER_NOTICE("Create NaOH pumps");
+            LOGGER_NOTICE_FMT("Create NaOH pumps on Pin: %d",pump_pin);
             pinMode(pump_pin, OUTPUT);
             digitalWrite(pump_pin, LOW);
-            // pinMode(monitor_pin, INPUT);
-            // digitalWrite(monitor_pin, LOW);
-            msgBroker.registerMessage(new State(*this, "inGarden/naoh_pump/state"));
+            msgBroker.registerMessage(new State(*this, "naoh_pump/state"));
         };
     };
     bool Pump_naoh::State::call(JsonDocument payload)
     {
-        if (payload["state"])
-        {
-            LOGGER_NOTICE("NaOh Pump ON");
-            digitalWrite(_parent._pump_pin, HIGH);
+        if(payload.is<bool>()){
+            if (payload.as<bool>())
+            {
+                LOGGER_NOTICE_FMT("NaOH Pump ON - Pin: %d",_parent._pump_pin);
+                digitalWrite(_parent._pump_pin, HIGH);
+            }
+            else
+            {
+                LOGGER_NOTICE_FMT("NaOH Pump OFF - Pin: %d",_parent._pump_pin);
+                digitalWrite(_parent._pump_pin, LOW);
+            }
+            _network->pubMsg("naoh_pump/state", payload);
+        }else{
+            LOGGER_WARNING("Payload not bool");     //Improve by sending error code as mqtt message
+            return false;
         }
-        else
-        {
-            LOGGER_NOTICE("NaOh Pump OFF");
-            digitalWrite(_parent._pump_pin, LOW);
-        }
-        _network->pubMsg("outGarden/naoh_pump/state", payload);
-        return payload["state"];
+        return true;
     };
 } // END namespace Services

@@ -28,23 +28,24 @@ namespace Services
         {
             LOGGER_NOTICE("Create heat pump");
             pinMode(pump_pin, OUTPUT);
-            msgBroker.registerMessage(new State(*this, "inGarden/heat_pump/state"));
+            msgBroker.registerMessage(new State(*this, "heat_pump/state"));
         };
     };
     bool Pump_heat::State::call(JsonDocument payload)
     {
         if (payload["state"])
         {
-            LOGGER_NOTICE("Heat Pump ON");
+            LOGGER_NOTICE_FMT("Heat Pump ON - Pin:",_parent._pump_pin);
+
             digitalWrite(_parent._pump_pin, HIGH);
         }
         else
         {
-            LOGGER_NOTICE("Heat Pump OFF");
+            LOGGER_NOTICE_FMT("Heat Pump OFF - Pin:",_parent._pump_pin);
             digitalWrite(_parent._pump_pin, LOW);
         }
         // State-Handler registrieren
-        _network->pubMsg("outGarden/heat_pump/state", payload);
+        _network->pubMsg("heat_pump/state", payload);
         return payload["state"];
     };
 } // End namespace Services
