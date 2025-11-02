@@ -23,9 +23,6 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/services/pump_algizid.h"
 #include "../include/services/pump_pont.h"
 #include "../include/services/pump_heat.h"
-#include "../include/services/valve_rinse.h"
-#include "../include/services/valve_garden.h"
-#include "../include/services/valve_terrace.h"
 #include "../include/services/ambience.h"
 #include "../include/services/pumpError.h"
 
