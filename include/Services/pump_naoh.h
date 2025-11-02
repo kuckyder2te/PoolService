@@ -13,7 +13,6 @@ namespace Services
     class Pump_naoh
     {
         uint8_t _pump_pin;
-        uint8_t _monitor_pin;
 
     private:
         class State : public Message

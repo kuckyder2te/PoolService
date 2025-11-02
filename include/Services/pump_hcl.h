@@ -13,7 +13,6 @@ namespace Services
     class Pump_hcl
     {
         uint8_t _pump_pin;
-        uint8_t _monitor_pin;
 
     private:
         // Innere Klasse für die Nachrichtenverarbeitung

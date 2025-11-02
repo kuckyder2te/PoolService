@@ -26,16 +26,17 @@ namespace Services
     public:
         Pump_heat(const uint8_t pump_pin) : _pump_pin(pump_pin)       // changed by Kucky
         {
-            LOGGER_NOTICE("Create heat pump");
+            LOGGER_NOTICE_FMT("Create heat pump on Pin: ", _pump_pin);
             pinMode(pump_pin, OUTPUT);
             msgBroker.registerMessage(new State(*this, "heat_pump/state"));
         };
     };
     bool Pump_heat::State::call(JsonDocument payload)
     {
-        if (payload["state"])
+        if (payload.is<bool>())
         {
-            LOGGER_NOTICE_FMT("Heat Pump ON - Pin:",_parent._pump_pin);
+            if (payload.as<bool>())
+            {            LOGGER_NOTICE_FMT("Heat Pump ON - Pin:",_parent._pump_pin);
 
             digitalWrite(_parent._pump_pin, HIGH);
         }
@@ -46,6 +47,12 @@ namespace Services
         }
         // State-Handler registrieren
         _network->pubMsg("heat_pump/state", payload);
-        return payload["state"];
-    };
+        }
+        else
+        {
+            LOGGER_WARNING("Payload not bool"); // Improve by sending error code as mqtt message
+            return false;
+        }
+        return true;
+    }
 } // End namespace Services

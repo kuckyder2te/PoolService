@@ -19,7 +19,8 @@ namespace Services
         class State : public Message
         {
             Pump_pont &_parent; // Referenz zur äußeren Klasse
-        public:
+        
+            public:
             State(Pump_pont &parent, String topic) : Message(topic), _parent(parent) {}
             bool call(JsonDocument payload);
         };
@@ -42,12 +43,12 @@ namespace Services
             if (payload.as<bool>())
             {
                 LOGGER_NOTICE_FMT("Pont pump ON - Pin: %d", _parent._pump_pin);
-             //   digitalWrite(_pump_pin, HIGH);_
+                digitalWrite(_parent._pump_pin, HIGH);
             }
             else
             {
                 LOGGER_NOTICE_FMT("Pont pump OFF - Pin: %d", _parent._pump_pin);
-             //   digitalWrite(_pump_pin, LOW);
+                digitalWrite(_parent._pump_pin, LOW);
             }
             _network->pubMsg("pont_pump/state", payload);
         }
