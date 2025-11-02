@@ -69,8 +69,8 @@ void setup()
 
   /*Dosing pumps*/
   PumpNaOH = new Services::Pump_naoh(NAOH_PUMP);
-  PumpHCl = new Services::Pump_hcl(HCL_PUMP, HCL_MON);
-  PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
+  PumpHCl = new Services::Pump_hcl(HCL_PUMP);
+  PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP);
 
   /*220V pumps*/
   PumpPont = new Services::Pump_pont(PONT_PUMP);
