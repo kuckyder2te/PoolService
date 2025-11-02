@@ -15,15 +15,6 @@ namespace Services
 {
     class pumpError : public Task::Base
     {
-        // PubSubClient *_client;
-        // char msg[30];
-        // uint8_t _pin_algizid;
-        // uint8_t _pin_algizid_mon; // Is that necessary?  Kucky
-        // uint8_t _pin_naoh;
-        // uint8_t _pin_naoh_mon;
-        // uint8_t _pin_hcl;
-        // uint8_t _pin_hcl_mon;
-
     private:
         struct PumpInfo
         {
@@ -53,14 +44,7 @@ namespace Services
                         const uint8_t hcl_mon, const uint8_t hcl_pump,
                         const uint8_t naoh_mon, const uint8_t naoh_pump)
         {
-            LOGGER_VERBOSE("enter pumpError::init ..."); // Is that necessary?  Kucky
-            // _pin_algizid = algizid_pump;
-            // _pin_algizid_mon = algizid_mon;
-            // _pin_naoh = naoh_pump;
-            // _pin_naoh_mon = naoh_mon;
-            // _pin_hcl = hcl_pump;
-            // _pin_hcl_mon = hcl_mon;
-
+            LOGGER_VERBOSE("enter pumpError::init ..."); 
             {
                 pumps[0].pumpPin = algizid_pump;
                 pumps[0].monitorPin = algizid_mon;
@@ -99,45 +83,6 @@ namespace Services
                     checkPump(pumps[i]);
                 }
             }
-
-            /*
-            static bool algizid_err = false;
-            static bool hcl_err = false;
-            static bool naoh_err = false;
-
-            if (digitalRead(_pin_algizid_mon) == digitalRead(_pin_algizid))
-            {
-                algizid_err = false;                                  // No malfunction
-                _network->pubMsg("outGarden/algizid_error", "false"); // this is not clearly
-            }
-            else
-            {
-                algizid_err = true; // Malfunktion   must this be?
-                _network->pubMsg("outGarden/algizid_error", "true");
-            }
-
-            if (digitalRead(_pin_naoh_mon) == digitalRead(_pin_naoh))
-            {
-                naoh_err = false; // No malfunction
-                _network->pubMsg("outGarden/naoh_error", "false");
-            }
-            else
-            {
-                naoh_err = true; // Malfunktion   must this be?
-                _network->pubMsg("outGarden/naoh_error", "true");
-            }
-
-            if (digitalRead(_pin_hcl_mon) == digitalRead(_pin_hcl))
-            {
-                algizid_err = false; // No malfunction
-                _network->pubMsg("outGarden/hcl_error", "false");
-            }
-            else
-            {
-                algizid_err = true; // Malfunktion   must this be?
-                _network->pubMsg("outGarden/hcl_error", "true");
-            }
-                */
         }
 
     private:
