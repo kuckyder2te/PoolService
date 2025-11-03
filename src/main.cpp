@@ -24,7 +24,6 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/services/pump_pont.h"
 #include "../include/services/pump_heat.h"
 #include "../include/services/ambience.h"
-#include "../include/services/pumpError.h"
 
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -65,9 +64,9 @@ void setup()
   _network->begin();
 
   /*Dosing pumps*/
-  PumpNaOH = new Services::Pump_naoh(NAOH_PUMP);
-  PumpHCl = new Services::Pump_hcl(HCL_PUMP);
-  PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP);
+  PumpNaOH = new Services::Pump_naoh(NAOH_PUMP, NAOH_MON, true);
+  PumpHCl = new Services::Pump_hcl(HCL_PUMP, HCL_MON, true);
+  PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON, true);
 
   /*220V pumps*/
   PumpPont = new Services::Pump_pont(PONT_PUMP);
@@ -80,9 +79,9 @@ void setup()
       ->init(DALLAS)
       ->startFps(0.017); // ~ 1 minute
 
-  Tasks.add<Services::pumpError>("pumpError")
-      ->init(ALGIZID_MON, ALGIZID_PUMP, HCL_MON, HCL_PUMP, NAOH_MON,  NAOH_PUMP)
-      ->startFps(0.5);
+  // Tasks.add<Services::pumpError>("pumpError")
+  //     ->init(ALGIZID_MON, ALGIZID_PUMP, HCL_MON, HCL_PUMP, NAOH_MON,  NAOH_PUMP)
+  //     ->startFps(0.5);
 
   msgBroker.printTopics();
   LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");
@@ -93,5 +92,9 @@ void loop()
   _network->update();
 
   Tasks.update();
+
+  PumpNaOH->update();
+  PumpHCl->update();
+  PumpAlgizid->update();
 
 } /*--------------------------------------------------------------------------*/
