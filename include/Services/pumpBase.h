@@ -64,59 +64,24 @@ public:
         pinMode(_pump_pin, OUTPUT);
         digitalWrite(_pump_pin, LOW);
         if (_monitorPin != 255) {
-            pinMode(_monitorPin, INPUT_PULLUP); // default, can be changed by caller
+            pinMode(_monitorPin, INPUT_PULLUP); // default
         }
-        // register topic without ROOT prefix, MessageBroker removes root before matching
         msgBroker.registerMessage(new StateMsg(*this, _topic + "/state"));
     }
 
     virtual ~PumpBase() = default;
 
-    // Verarbeitet eingehende Messages (bool oder { "on":bool, "duration":ms })
-    bool onMessage(JsonDocument payload) {
-        unsigned long now = millis();
-        if (now - _lastCmd < _debounceMs) {
-            LOGGER_DEBUG_FMT("%s: command debounced (%lums)", _topic.c_str(), now - _lastCmd);
-            return true;
-        }
-        _lastCmd = now;
-
-        if (payload.is<bool>()) {
-            setState(payload.as<bool>());
-            publishState();
-            return true;
-        }
-
-        if (payload.is<JsonObject>()) {
-            JsonObject obj = payload.as<JsonObject>();
-            if (obj.containsKey("on") && obj["on"].is<bool()) {
-                setState(obj["on"].as<bool>());
-            }
-            if (obj.containsKey("duration") && obj["duration"].is<unsigned long>()) {
-                unsigned long dur = obj["duration"].as<unsigned long>();
-                if (dur > 0) {
-                    // temporärer Timeout für dieses Einschalten
-                    if (obj.containsKey("on") ? obj["on"].as<bool>() : _state) {
-                        _timeoutMs = dur;
-                    }
-                }
-            }
-            publishState(); // sende das Objekt / aktuellen Status zurück
-            return true;
-        }
-
-        LOGGER_WARNING_FMT("%s: Payload not bool or object", _topic.c_str());
-        return false;
-    }
-
-    // setState schaltet Hardware und verwaltet Timestamp
+    // -----------------------------------------------------------
+    // Grundfunktion: Pumpenzustand setzen
+    // -----------------------------------------------------------
     virtual void setState(bool on) {
-        if (on == _state) return;
+        if (on == _state)
+            return;
         _state = on;
         digitalWrite(_pump_pin, on ? HIGH : LOW);
         if (on) {
             _onSince = millis();
-            _monitorFailSince = 0; // reset monitor fail timer
+            _monitorFailSince = 0;
             LOGGER_NOTICE_FMT("%s ON (pin %d)", _topic.c_str(), _pump_pin);
         } else {
             _onSince = 0;
@@ -124,10 +89,59 @@ public:
         }
     }
 
-    bool getState() const { return _state; }
+    // -----------------------------------------------------------
+    // Nachricht vom MessageBroker verarbeiten (MQTT)
+    // -----------------------------------------------------------
+    bool onMessage(JsonDocument payload) {
+        unsigned long now = millis();
+        if (now - _lastCmd < _debounceMs) {
+            LOGGER_NOTICE_FMT("%s: command debounced (%lums)", _topic.c_str(), now - _lastCmd);
+            return true;
+        }
+        _lastCmd = now;
 
+        // --- einfacher bool-Wert ---
+        if (payload.is<bool>()) {
+            this->setState(payload.as<bool>());
+            publishState();
+            return true;
+        }
+
+        // --- Objekt mit optionalen Parametern ---
+        if (payload.is<JsonObject>()) {
+            JsonObject obj = payload.as<JsonObject>();
+
+            if (obj.containsKey("on")) {
+                this->setState(obj["on"].as<bool>());
+            }
+
+            if (obj.containsKey("duration")) {
+                unsigned long dur = obj["duration"].as<unsigned long>();
+                if (dur > 0) {
+                    bool wantOn = _state;
+                    if (obj.containsKey("on"))
+                        wantOn = obj["on"].as<bool>();
+                    if (wantOn)
+                        _timeoutMs = dur;
+                }
+            }
+
+            publishState();
+            return true;
+        }
+
+        LOGGER_WARNING_FMT("%s: Payload not bool or object", _topic.c_str());
+        return false;
+    }
+
+    // -----------------------------------------------------------
+    // Getter / Setter
+    // -----------------------------------------------------------
+    bool getState() const { return _state; }
     void setDebounce(unsigned long ms) { _debounceMs = ms; }
     void setTimeout(unsigned long ms) { _timeoutMs = ms; }
+    ErrorCode getError() const { return _error; }
+
     void setMonitorPin(uint8_t pin, bool activeLow = true, unsigned long toleranceMs = 500) {
         _monitorPin = pin;
         _monitorActiveLow = activeLow;
@@ -135,9 +149,9 @@ public:
         if (_monitorPin != 255) pinMode(_monitorPin, INPUT_PULLUP);
     }
 
-    ErrorCode getError() const { return _error; }
-
-    // Periodisch in loop() aufrufen
+    // -----------------------------------------------------------
+    // Zyklisches Update (Timeout, Monitorüberwachung)
+    // -----------------------------------------------------------
     virtual void update(unsigned long now = millis()) {
         // Timeout prüfen
         if (_state && _timeoutMs > 0 && _onSince > 0) {
@@ -148,13 +162,14 @@ public:
             }
         }
 
-        // Monitor prüfen (nur wenn Monitor vorhanden und Pumpe an)
+        // Monitor prüfen (nur wenn vorhanden)
         if (_monitorPin != 255 && _state) {
             int val = digitalRead(_monitorPin);
             bool active = _monitorActiveLow ? (val == LOW) : (val == HIGH);
+
             if (!active) {
-                // Monitor signalisiert nicht "aktiv" während Pumpe an
-                if (_monitorFailSince == 0) _monitorFailSince = now;
+                if (_monitorFailSince == 0)
+                    _monitorFailSince = now;
                 else if (now - _monitorFailSince >= _monitorToleranceMs) {
                     if (_error != ErrorCode::STUCK) {
                         _error = ErrorCode::STUCK;
@@ -174,6 +189,9 @@ public:
     }
 
 protected:
+    // -----------------------------------------------------------
+    // MQTT-Publishing für State & Error
+    // -----------------------------------------------------------
     void publishState() {
         DynamicJsonDocument doc(128);
         doc.set(_state);

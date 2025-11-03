@@ -1,5 +1,5 @@
 #pragma once
-#include "../include/Services/pump_naoh.h"
+#include "../include/Services/pumpBase.h"
 
 namespace Services {
 class Pump_naoh : public PumpBase {
