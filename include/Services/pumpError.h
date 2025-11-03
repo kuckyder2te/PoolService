@@ -60,7 +60,7 @@ namespace Services
 
                 for (uint8_t i = 0; i < NUM_PUMPS; i++)
                 {
-                    pinMode(pumps[i].pumpPin, INPUT);
+                    pinMode(pumps[i].pumpPin, OUTPUT);
                     digitalWrite(pumps[i].pumpPin, LOW); // sicherheitshalber aus
                     pinMode(pumps[i].monitorPin, INPUT);
                 }
