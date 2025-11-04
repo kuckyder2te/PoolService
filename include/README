@@ -102,6 +102,8 @@ The project follows a modular design with the following key components:
 #define BROKER "MQTT_Broker_IP"
 #define USER "MQTT_Username"
 #define PW "MQTT_Password"
+
+IP 192.168.2.211/update
 ```
 
 ## MQTT Topics

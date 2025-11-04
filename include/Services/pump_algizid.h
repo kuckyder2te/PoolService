@@ -1,5 +1,5 @@
 #pragma once
-#include "../include/Services/pumpbase.h"
+#include "../include/Services/dosing_pump_base.h"
 
 namespace Services {
 class Pump_algizid : public PumpBase {
