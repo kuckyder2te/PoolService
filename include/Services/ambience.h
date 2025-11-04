@@ -36,25 +36,25 @@ namespace Services
         {
             LOGGER_NOTICE("Create LED stripes");
 
-            // Pins speichern
+            // Save Pins 
             _ledRedPin = redPin;
             _ledGreenPin = greenPin;
             _ledBluePin = bluePin;
 
-            // Pins initialisieren
+            // Initialize pins
             pinMode(_ledRedPin, OUTPUT);
             pinMode(_ledGreenPin, OUTPUT);
             pinMode(_ledBluePin, OUTPUT);
 
-            // Farben zurücksetzen
+            // Reset colors
             _r = _g = _b = 0;
 
-            // Nachrichten registrieren
+            // Register messages
             msgBroker.registerMessage(new State("inGarden/ambient/state"));
             msgBroker.registerMessage(new Color("inGarden/ambient/color"));
         }
 
-        // --- Statische Hilfsfunktionen für LED-Steuerung ---
+        // --- Static auxiliary functions for LED control ---
         static void setColor(uint8_t r, uint8_t g, uint8_t b)
         {
             _r = r;
@@ -74,7 +74,7 @@ namespace Services
         }
     };
 
-    // --- Definition der statischen Variablen ---
+    // --- Definition of static variables ---
     uint8_t Ambience::_ledRedPin = 0;
     uint8_t Ambience::_ledGreenPin = 0;
     uint8_t Ambience::_ledBluePin = 0;
@@ -82,7 +82,7 @@ namespace Services
     uint8_t Ambience::_g = 0;
     uint8_t Ambience::_b = 0;
 
-    // --- Implementierungen der inneren Klassen ---
+    // --- Implementations of the inner classes ---
     bool Ambience::State::call(JsonDocument payload)
     {
         bool state = payload["value"];
