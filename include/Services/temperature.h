@@ -47,7 +47,7 @@ namespace Services
             if (_temperaturePool != DEVICE_DISCONNECTED_C)
             {
                 sprintf(_msg, "{ \"value\":%.1f }", _temperaturePool);
-                _network->pubMsg("outGarden/temperature", _msg);
+                _network->pubMsg("outGarden/temperaturePool", _msg);
             }
             else
             {
