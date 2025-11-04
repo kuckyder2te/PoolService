@@ -9,17 +9,17 @@ namespace Services
     class Ambience
     {
     private:
-        const uint8_t _ledRedPin;
-        const uint8_t _ledGreenPin;
-        const uint8_t _ledBluePin;
-
+        // --- LED Pins und Farbwerte ---
+        static uint8_t _ledRedPin;
+        static uint8_t _ledGreenPin;
+        static uint8_t _ledBluePin;
         static uint8_t _r, _g, _b;
 
         // --- State Message ---
         class State : public Message
         {
         public:
-            explicit State(const String& topic) : Message(topic) {}
+            explicit State(const String &topic) : Message(topic) {}
             bool call(JsonDocument payload) override;
         };
 
@@ -27,52 +27,62 @@ namespace Services
         class Color : public Message
         {
         public:
-            explicit Color(const String& topic) : Message(topic) {}
+            explicit Color(const String &topic) : Message(topic) {}
             bool call(JsonDocument payload) override;
         };
 
     public:
         Ambience(uint8_t redPin, uint8_t greenPin, uint8_t bluePin)
-            : _ledRedPin(redPin), _ledGreenPin(greenPin), _ledBluePin(bluePin)
         {
             LOGGER_NOTICE("Create LED stripes");
 
-            _r = _g = _b = 0;
+            // Pins speichern
+            _ledRedPin = redPin;
+            _ledGreenPin = greenPin;
+            _ledBluePin = bluePin;
 
+            // Pins initialisieren
             pinMode(_ledRedPin, OUTPUT);
             pinMode(_ledGreenPin, OUTPUT);
             pinMode(_ledBluePin, OUTPUT);
 
+            // Farben zurücksetzen
+            _r = _g = _b = 0;
+
+            // Nachrichten registrieren
             msgBroker.registerMessage(new State("inGarden/ambient/state"));
             msgBroker.registerMessage(new Color("inGarden/ambient/color"));
         }
 
-        // optional: Setter zum direkten Ändern ohne Message
+        // --- Statische Hilfsfunktionen für LED-Steuerung ---
         static void setColor(uint8_t r, uint8_t g, uint8_t b)
         {
             _r = r;
             _g = g;
             _b = b;
-            analogWrite(LED_STRIPE_RED, 255 - _r);
-            analogWrite(LED_STRIPE_GREEN, 255 - _g);
-            analogWrite(LED_STRIPE_BLUE, 255 - _b);
+
+            analogWrite(_ledRedPin, 255 - _r);
+            analogWrite(_ledGreenPin, 255 - _g);
+            analogWrite(_ledBluePin, 255 - _b);
         }
 
         static void setOff()
         {
-            analogWrite(LED_STRIPE_RED, 255);
-            analogWrite(LED_STRIPE_GREEN, 255);
-            analogWrite(LED_STRIPE_BLUE, 255);
+            analogWrite(_ledRedPin, 255);
+            analogWrite(_ledGreenPin, 255);
+            analogWrite(_ledBluePin, 255);
         }
     };
 
-    // --- Static Member Definition ---
+    // --- Definition der statischen Variablen ---
+    uint8_t Ambience::_ledRedPin = 0;
+    uint8_t Ambience::_ledGreenPin = 0;
+    uint8_t Ambience::_ledBluePin = 0;
     uint8_t Ambience::_r = 0;
     uint8_t Ambience::_g = 0;
     uint8_t Ambience::_b = 0;
 
-    // --- Implementations ---
-
+    // --- Implementierungen der inneren Klassen ---
     bool Ambience::State::call(JsonDocument payload)
     {
         bool state = payload["value"];
@@ -89,12 +99,11 @@ namespace Services
     bool Ambience::Color::call(JsonDocument payload)
     {
         LOGGER_NOTICE_FMT("Set Color %s", payload["color"]);
-        _r = payload["color"]["r"];
-        _g = payload["color"]["g"];
-        _b = payload["color"]["b"];
+        uint8_t r = payload["color"]["r"];
+        uint8_t g = payload["color"]["g"];
+        uint8_t b = payload["color"]["b"];
 
-        Ambience::setColor(_r, _g, _b);
-
+        Ambience::setColor(r, g, b);
         return _network->pubMsg("inGarden/ambient/color", payload);
     }
 
