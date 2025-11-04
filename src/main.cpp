@@ -69,8 +69,8 @@ void setup()
   PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON, true);
 
   /*220V pumps*/
-  PumpPont = new Services::Pump_pont(PONT_PUMP);
-  PumpHeat = new Services::Pump_heat(HEAT_PUMP);
+  PumpPont = new Services::Pump_pont(PONT_PUMP, 200, 10000); // 10 s timeout
+  PumpHeat = new Services::Pump_heat(HEAT_PUMP, 200, 5000);  // 5 s timeout
 
   /* LED lights*/
   LEDLights = new Services::Ambience(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);
@@ -92,5 +92,8 @@ void loop()
   PumpNaOH->update();
   PumpHCl->update();
   PumpAlgizid->update();
+
+  PumpPont->update();
+  PumpHeat->update();
 
 } /*--------------------------------------------------------------------------*/
