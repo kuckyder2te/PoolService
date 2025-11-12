@@ -5,7 +5,6 @@
     Description: Definitions for PINs and constands
 */
 
-#define DEBUG_MESSAGE_BUFFER_SIZE 100
 #define GLOBAL_BUFFER_SIZE 100
 
 #define HCL_PUMP     5

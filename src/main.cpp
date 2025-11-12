@@ -54,15 +54,21 @@ char msg[MSG_BUFFER_SIZE];
 void setup()
 {
   delay(2000);
+  Serial.begin(DEBUG_SPEED);
+#ifdef DEBUG_DESTINATION_SERIAL
   DebugOutput->begin(DEBUG_SPEED);
   Logger::setOutputFunction(&MyLoggerOutput::localLogger);
+#endif
+#ifdef DEBUG_DESTINATION_UDP
+  Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
+#endif
   Logger::setLogLevel(Logger::DEBUG); // Muss immer einen Wert in platformio.ini haben (SILENT)
   delay(500);                         // For switching on Serial Monitor
   LOGGER_NOTICE_FMT("************************* Poolservic (%s) *************************", __TIMESTAMP__);
   LOGGER_NOTICE("Start building Poolservice");
 
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
-  _network->begin();
+  _network->begin("192.168.2.157",4000);
 
   /*Dosing pumps*/
   PumpNaOH = new Services::Pump_naoh(NAOH_PUMP);
