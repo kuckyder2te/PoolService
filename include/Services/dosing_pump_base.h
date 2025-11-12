@@ -193,7 +193,7 @@ protected:
     // MQTT-Publishing für State & Error
     // -----------------------------------------------------------
     void publishState() {
-        DynamicJsonDocument doc(128);
+        JsonDocument doc;
         doc.set(_state);
         _network->pubMsg((_topic + "/state").c_str(), doc);
     }

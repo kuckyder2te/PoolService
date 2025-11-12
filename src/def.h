@@ -26,3 +26,6 @@
 #define HEAT_PUMP  14  // ehem. Relay 3
 
 #define DALLAS 19
+
+#define DEBOUNCE_TIME 200   // 200 millisec
+#define TIME_OUT_1 10000    //10sec

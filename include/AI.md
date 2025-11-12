@@ -1,0 +1,16 @@
+- Ich möchte aus den Projekten PoolService und GardenControl mit Node RED eine grafische Oberfläche erstellen
+- Ich habe bereits Flows dazu erstellt und hochgeladen
+- Das Projekt Poolservice soll die Poolpumpe nach einem Zeitplan ein bzw. aussschalten.
+- An Werktagen anders als am Wochenende
+- Der Zeitplan soll veränderbar sein.
+- Die 3 Dosierpumpen sollen eine bestvorbestimmte Zeit laufen
+- danach soll aus Projekt GardenControl das Spülventil (valve_rinse) eine vordefinierte Zeit öffnen
+- Den Status der Ventile mit LEDs anzeigen
+- Eine Tempraturanzeige soll es auch geben
+- Die Teichpumpe soll nach einem Zeitplan aus dem GardenControl-Prokekt ein bzw. aussgeschaltet werden.
+- Die Heizpumpe soll nach einem Zeitplan aus dem PoolService-Prokekt ein bzw. aussgeschaltet werden.
+- Eine LED RGB Leiste soll mit einem Colorpicker gesteuert werden. Den Farbverlaufrate soll variierbar sein.
+- Der Farbverlauf soll von grün nach blau und zurück sein.
+- Die RGB Leiste soll ein bzw. ausgeschaltet werden.
+- Die Vertile Valve_Garden und Valve_Terrace sollen aus dem GardnbControl-Projekt nach einem Zeitplan ein bzw. aussgeschaltet werden.
+- Das Ventil Valve_Rinse soll aus dem PoolService-Prokekt für eine vorbestillte Zeit ein- bzw. ausgeschaltet werden 

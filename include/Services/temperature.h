@@ -24,12 +24,14 @@ namespace Services
     public:
         Temperature(const String &name) : Task::Base(name)
         {
-            LOGGER_NOTICE("Create Temperature Task");
+            LOGGER_NOTICE("Create temperature task");
         }
+
         virtual void begin() override
         {
             LOGGER_NOTICE("Dallas Temperature IC Control Library Demo");            
         }
+        
         Temperature *init(const uint8_t DallasPin){
             LOGGER_VERBOSE("enter ...");
             _interface = new OneWire(DallasPin);
