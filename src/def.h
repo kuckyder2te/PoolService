@@ -25,3 +25,5 @@
 #define HEAT_PUMP  14  // ehem. Relay 3
 
 #define DALLAS 19
+
+#define PORT_FOR_POOLSERVICE 4000
