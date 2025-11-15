@@ -16,6 +16,7 @@ namespace Services
     {
     protected:
         uint8_t _pump_pin;
+        uint8_t _mon_pin;
         String _topic;
         bool _state = false;
 
@@ -39,9 +40,11 @@ namespace Services
 
     public:
         DosingPumps(uint8_t pumpPin,
+                    uint8_t monPin,
                     const String &topic,
                     unsigned long debounceMs = 200)
             : _pump_pin(pumpPin),
+              _mon_pin(monPin),
               _topic(topic),
               _debounceMs(debounceMs)
         {
@@ -98,10 +101,9 @@ namespace Services
 
         bool getState() const { return _state; }
 
-            void setDebounce(unsigned long ms) { _debounceMs = ms; }
+        void setDebounce(unsigned long ms) { _debounceMs = ms; }
 
-protected:
-
+    protected:
         // ----------------------------------------------------------
         // State per MQTT publizieren
         // ----------------------------------------------------------
