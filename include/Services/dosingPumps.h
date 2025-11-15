@@ -53,8 +53,12 @@ namespace Services
             pinMode(_pump_pin, OUTPUT);
             digitalWrite(_pump_pin, LOW);
 
-            msgBroker.registerMessage(
-                new StateMsg(*this, _topic + "/state"));
+            if (_mon_pin != 255)
+            {
+                pinMode(_mon_pin, INPUT_PULLUP); // default
+            }
+
+            msgBroker.registerMessage(new StateMsg(*this, _topic + "/state"));
         }
 
         virtual ~DosingPumps() = default;
