@@ -67,13 +67,13 @@ void setup()
   LOGGER_NOTICE("Start building Poolservice");
 
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
-  //_network->begin("192.168.2.157",4000);
+  //_network->begin("192.168.2.157",PORT_FOR_POOLSERVICE);
   _network->begin(MQTT, PORT_FOR_POOLSERVICE);
   
   /*Dosing pumps*/
   PumpNaOH = new Services::Pump_naoh(NAOH_PUMP);
-  PumpHCl = new Services::Pump_hcl(HCL_PUMP);
-  PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP);
+  // PumpHCl = new Services::Pump_hcl(HCL_PUMP);
+  // PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP);
 
   /*220V pumps*/
   PumpPont = new Services::Pump_pont(PONT_PUMP);
