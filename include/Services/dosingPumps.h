@@ -95,17 +95,17 @@ namespace Services
         // Must be called periodically (e.g., in loop()).
         virtual void update(unsigned long now = millis())
         {
-            static unsigned long lastDebounce = millis();
-            // Check debounce
-            if (millis() - lastDebounce >= DEBOUNCE_TIME)
-            {
-                LOGGER_NOTICE_FMT("%s Pump bebounce reached (%lums) - switching off", _topic_prefix.c_str(), (millis() - lastDebounce));
-                setState(false);
-                // publish state changed
-                DynamicJsonDocument doc(128);
-                doc.set(false);
-                msgBroker.registerMessage(new StateMsg(*this, "/state"));
-            }
+            // static unsigned long lastDebounce = millis();
+            // // Check debounce
+            // if (millis() - lastDebounce >= DEBOUNCE_TIME)
+            // {
+            //     LOGGER_NOTICE_FMT("%s Pump bebounce reached (%lums) - switching off", _topic_prefix.c_str(), (millis() - lastDebounce));
+            //     setState(false);
+            //     // publish state changed
+            //     DynamicJsonDocument doc(128);
+            //     doc.set(false);
+            //     msgBroker.registerMessage(new StateMsg(*this, "/state"));
+            // }
         }
 
         // ----------------------------------------------------------
@@ -122,7 +122,7 @@ namespace Services
 
         // bool getState() const { return _state; } // Not used anywhere
 
-        // void setDebounce(unsigned long ms) { _debounceMs = ms; }
+        // void setDebounce(unsigned long ms) { _debounceMs = ms; } // Not used anywhere
 
     protected:
         // ----------------------------------------------------------
