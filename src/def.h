@@ -28,3 +28,10 @@
 
 #define PORT_FOR_POOLSERVICE 4000
 #define DEBOUNCE_TIME 200
+
+#define TIMEOUT_PONT 31UL * 60UL * 1000UL   // ~ 30 Minuten + 1 minute waiting period
+#define TIMEOUT_HEATPUMP 61UL * 60UL * 1000UL   // ~ 60 Minuten + 1 minute waiting period
+
+#define TIMEOUT_HCL_PUMP 16UL * 1000UL  // ~ 15 Seconds + 1 second waiting period
+#define TIMEOUT_NAOH_PUMP 16UL * 1000UL  // ~ 15 Seconds + 1 second waiting period
+#define TIMEOUT_ALGIZID_PUMP 16UL * 1000UL  // ~ 15 Seconds + 1 second waiting period

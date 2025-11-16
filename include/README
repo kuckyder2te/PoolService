@@ -127,6 +127,10 @@ The system uses the following MQTT topics for communication:
 
 - `inGarden/controller/config` - Controller configuration endpoint
 
+### Debounce and Time out rules
+- The debouncing is always checked after 200 milliseconds. The debounce time must be checked.
+- The timeout depends on the specific pump.
+
 ### Controller Configuration
 The controller now supports dynamic configuration through MQTT messages. The new configuration endpoint allows sending JSON payloads to `inGarden/controller/config` which will be processed and acknowledged with a response on `outGarden/controller/config`.
 

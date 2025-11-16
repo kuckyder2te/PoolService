@@ -79,8 +79,8 @@ void setup()
   PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
 
   /*220V pumps*/
-  PumpPont = new Services::Pump_pont(PONT_PUMP);
-  PumpHeat = new Services::Pump_heat(HEAT_PUMP);
+  PumpPont = new Services::Pump_pont(PONT_PUMP, 255);
+  PumpHeat = new Services::Pump_heat(HEAT_PUMP, 255);
 
   /* LED lights*/
   LEDLights = new Services::Ambience(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);

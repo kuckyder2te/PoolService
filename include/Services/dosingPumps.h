@@ -59,7 +59,7 @@ namespace Services
             pinMode(_pump_pin, OUTPUT);
             digitalWrite(_pump_pin, LOW);
 
-            if (_mon_pin != 255)
+            if (_mon_pin != 255)    // Check if a monitor PIN is implemented.
             {
                 pinMode(_mon_pin, INPUT_PULLUP); // default
             }
@@ -79,8 +79,7 @@ namespace Services
             // ⚠️ Debounce: Ignore MQTT commands arriving too quickly
             if (now - _lastCmd < _debounceMs)
             {
-                LOGGER_NOTICE_FMT("%s: command debounced (%lums)",
-                                  _topic.c_str(), now - _lastCmd);
+                LOGGER_NOTICE_FMT("%s: command debounced (%lums)", _topic.c_str(), now - _lastCmd);
                 return true;
             }
             _lastCmd = now;
@@ -104,8 +103,7 @@ namespace Services
             {
                 if (now - _onSince >= _timeoutMs)
                 {
-                    LOGGER_NOTICE_FMT("%s: timeout reached (%lums)",
-                                      _topic.c_str(), _timeoutMs);
+                    LOGGER_NOTICE_FMT("%s: timeout reached (%lums)", _topic.c_str(), _timeoutMs);
 
                     setState(false);
                     publishState();
@@ -121,8 +119,7 @@ namespace Services
             _state = on;
             digitalWrite(_pump_pin, on ? HIGH : LOW);
 
-            LOGGER_NOTICE_FMT("%s %s (pin %d)",
-                              _topic.c_str(), on ? "ON" : "OFF", _pump_pin);
+            LOGGER_NOTICE_FMT("%s %s (pin %d)", _topic.c_str(), on ? "ON" : "OFF", _pump_pin);
         }
 
         // bool getState() const { return _state; } // Not used anywhere
