@@ -22,6 +22,7 @@ namespace Services
 
         unsigned long _lastCmd = 0;
         unsigned long _debounceMs = 200; // Standardwert
+        String _topic_prefix; // z.B. "hcl_pump"
 
     private:
         class StateMsg : public Message
@@ -64,13 +65,13 @@ namespace Services
         virtual ~DosingPumps() = default;
 
         // ----------------------------------------------------------
-        // MQTT-Nachrichten verarbeiten
+        // Processing MQTT messages
         // ----------------------------------------------------------
         bool onMessage(JsonDocument payload)
         {
             unsigned long now = millis();
 
-            // ⚠️ Debounce: zu schnell ankommende MQTT-Commands ignorieren
+            // ⚠️ Debounce: Ignore MQTT commands arriving too quickly
             if (now - _lastCmd < _debounceMs)
             {
                 LOGGER_NOTICE_FMT("%s: command debounced (%lums)",
@@ -79,7 +80,7 @@ namespace Services
             }
             _lastCmd = now;
 
-            // Nur bool akzeptieren
+            // Accept only boolean
             if (payload.is<bool>())
             {
                 setState(payload.as<bool>());
@@ -91,8 +92,24 @@ namespace Services
             return false;
         }
 
+        // Must be called periodically (e.g., in loop()).
+        virtual void update(unsigned long now = millis())
+        {
+            static unsigned long lastDebounce = millis();
+            // Check debounce
+            if (millis() - lastDebounce >= DEBOUNCE_TIME)
+            {
+                LOGGER_NOTICE_FMT("%s Pump bebounce reached (%lums) - switching off", _topic_prefix.c_str(), (millis() - lastDebounce));
+                setState(false);
+                // publish state changed
+                DynamicJsonDocument doc(128);
+                doc.set(false);
+                msgBroker.registerMessage(new StateMsg(*this, "/state"));
+            }
+        }
+
         // ----------------------------------------------------------
-        // EIN/AUS schalten
+        // Switch ON/OFF
         // ----------------------------------------------------------
         virtual void setState(bool on)
         {
@@ -103,13 +120,13 @@ namespace Services
                               _topic.c_str(), on ? "ON" : "OFF", _pump_pin);
         }
 
-        bool getState() const { return _state; }
+        // bool getState() const { return _state; } // Not used anywhere
 
-        void setDebounce(unsigned long ms) { _debounceMs = ms; }
+        // void setDebounce(unsigned long ms) { _debounceMs = ms; }
 
     protected:
         // ----------------------------------------------------------
-        // State per MQTT publizieren
+        // Puplish state wia MQTT
         // ----------------------------------------------------------
         void publishState()
         {
