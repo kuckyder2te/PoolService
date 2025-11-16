@@ -69,7 +69,10 @@ void setup()
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
   //_network->begin("192.168.2.157",PORT_FOR_POOLSERVICE);
   _network->begin(MQTT, PORT_FOR_POOLSERVICE);
-  
+
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+
   /*Dosing pumps*/
   PumpNaOH = new Services::Pump_naoh(NAOH_PUMP, NAOH_MON);
   PumpHCl = new Services::Pump_hcl(HCL_PUMP, HCL_MON);
@@ -96,10 +99,23 @@ void setup()
 
 void loop()
 {
+  static unsigned long lastMillis;
+  static bool lastState = LOW;
+
   _network->update();
 
   Tasks.update();
 
- 
+  if (millis() - lastMillis >= 1000) // This can also be used to test the main loop.
+  {
+    digitalWrite(LED_BUILTIN, lastState);
+    lastState = !lastState;
+
+    PumpHCl->update();
+    PumpNaOH->update();
+    PumpAlgizid->update();
+
+    lastMillis = millis();
+  }
 
 } /*--------------------------------------------------------------------------*/

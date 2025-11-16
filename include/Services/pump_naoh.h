@@ -14,6 +14,6 @@ namespace Services
     public:
         Pump_naoh(uint8_t pin,
                   uint8_t monpin)
-            : DosingPumps(pin, monpin, "naoh_pump", 200) {}
+            : DosingPumps(pin, monpin, "naoh_pump", 200, 0) {}
     };
 }

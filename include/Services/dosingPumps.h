@@ -21,7 +21,10 @@ namespace Services
         bool _state = false;
 
         unsigned long _lastCmd = 0;
-        unsigned long _debounceMs = 200; // Standardwert
+        unsigned long _debounceMs = 200; // Standard value
+        unsigned long _timeoutMs = 0;    // 0 = disable
+        unsigned long _onSince = 0;      // Time from which the pump is ON
+
         String _topic_prefix; // z.B. "hcl_pump"
 
     private:
@@ -43,11 +46,13 @@ namespace Services
         DosingPumps(uint8_t pumpPin,
                     uint8_t monPin,
                     const String &topic,
-                    unsigned long debounceMs = 200)
+                    unsigned long debounceMs = 200,
+                    unsigned long timeoutMs = 0)
             : _pump_pin(pumpPin),
               _mon_pin(monPin),
               _topic(topic),
-              _debounceMs(debounceMs)
+              _debounceMs(debounceMs),
+              _timeoutMs(timeoutMs)
         {
             LOGGER_NOTICE_FMT("Create dosing pump '%s' on pin %d", _topic.c_str(), _pump_pin);
 
@@ -95,17 +100,17 @@ namespace Services
         // Must be called periodically (e.g., in loop()).
         virtual void update(unsigned long now = millis())
         {
-            // static unsigned long lastDebounce = millis();
-            // // Check debounce
-            // if (millis() - lastDebounce >= DEBOUNCE_TIME)
-            // {
-            //     LOGGER_NOTICE_FMT("%s Pump bebounce reached (%lums) - switching off", _topic_prefix.c_str(), (millis() - lastDebounce));
-            //     setState(false);
-            //     // publish state changed
-            //     DynamicJsonDocument doc(128);
-            //     doc.set(false);
-            //     msgBroker.registerMessage(new StateMsg(*this, "/state"));
-            // }
+            if (_state && _timeoutMs > 0 && _onSince > 0)
+            {
+                if (now - _onSince >= _timeoutMs)
+                {
+                    LOGGER_NOTICE_FMT("%s: timeout reached (%lums)",
+                                      _topic.c_str(), _timeoutMs);
+
+                    setState(false);
+                    publishState();
+                }
+            }
         }
 
         // ----------------------------------------------------------

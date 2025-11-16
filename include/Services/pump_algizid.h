@@ -15,6 +15,6 @@ namespace Services
     public:
         Pump_algizid(uint8_t pin,
                      uint8_t monpin)
-            : DosingPumps(pin, monpin, "algizid_pump", 200) {}
+            : DosingPumps(pin, monpin, "algizid_pump", 200, 0) {}
     };
 }

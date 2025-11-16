@@ -15,6 +15,6 @@ namespace Services
     public:
         Pump_hcl(uint8_t pin,
                  uint8_t monpin)
-            : DosingPumps(pin, monpin, "hcl_pump", 200) {}
+            : DosingPumps(pin, monpin, "hcl_pump", 200, 0) {}
     };
 }
