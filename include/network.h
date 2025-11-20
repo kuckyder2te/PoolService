@@ -39,7 +39,8 @@ private:
     MQTT_CALLBACK_SIGNATURE;
 
 public:
-    Network(const char *ssid, const char *password, const char *hostname, const char *broker, MQTT_CALLBACK_SIGNATURE) : _ssid(ssid), _password(password), _hostname(hostname), _broker(broker), callback(callback)
+    Network(const char *ssid, const char *password, const char *hostname, const char *broker, MQTT_CALLBACK_SIGNATURE) 
+            : _ssid(ssid), _password(password), _hostname(hostname), _broker(broker), callback(callback)
     {
         //LOGGER_NOTICE("Create");
         _logger_client = NULL;

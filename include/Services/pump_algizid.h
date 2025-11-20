@@ -17,4 +17,4 @@ namespace Services
                      uint8_t monpin)
             : DosingPumps(pin, monpin, "algizid_pump", 200, 0) {}
     };
-}
+} // end of namespace Services

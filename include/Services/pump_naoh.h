@@ -16,4 +16,4 @@ namespace Services
                   uint8_t monpin)
             : DosingPumps(pin, monpin, "naoh_pump", 200, 0) {}
     };
-}
+} // end of namespace Services
