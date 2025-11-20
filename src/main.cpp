@@ -89,10 +89,6 @@ void setup()
       ->init(DALLAS)
       ->startFps(0.017); // ~ 1 minute
 
-  // Tasks.add<Services::pumpError>("pumpError")
-  //     ->init(ALGIZID_MON, ALGIZID_PUMP, HCL_MON, HCL_PUMP, NAOH_MON,  NAOH_PUMP)
-  //     ->startFps(0.5);
-
   msgBroker.printTopics();
   LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");
 } /*--------------------------------------------------------------------------*/
@@ -111,9 +107,9 @@ void loop()
     digitalWrite(LED_BUILTIN, lastState);
     lastState = !lastState;
 
-    PumpHCl->update();
-    PumpNaOH->update();
-    PumpAlgizid->update();
+      PumpHCl->update();
+      PumpNaOH->update();
+      PumpAlgizid->update();
 
     lastMillis = millis();
   }
