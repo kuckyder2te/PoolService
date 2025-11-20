@@ -1,5 +1,6 @@
 # Pool Service
 Controller for pool
+NEW
 
 ## Overview
 This project is an Arduino-based application for the ESP32 that controls various modules including pumps, LEDs, temperatur sensor, and MQTT network communication. It uses PlatformIO as the build system.
@@ -15,10 +16,10 @@ This project is an Arduino-based application for the ESP32 that controls various
 ## Hardware
 ![Motherboard](/pictures/Motherboard.png)
 
-### Microcontroller
+## Microcontroller
 - ESP32 upesy_wroom
 
-### Connectors
+## Connectors
 #### J1 - 5V supply
 | PIN | Signal |<br>
 |--1--|--+12V--|<br>
@@ -84,7 +85,7 @@ This project is an Arduino-based application for the ESP32 that controls various
 |--2--|-LED red---|-------|<br>
 |--3--|-LED blue--|-------|<br>
 |--4--|-LED green-|-------|<br>
-|--5--|-----5V-----|-------|<br>
+|--5--|-----5V-- -|-------|<br>
 
 
 #### Valve Relays
