@@ -59,9 +59,10 @@ namespace Services
             pinMode(_pump_pin, OUTPUT);
             digitalWrite(_pump_pin, LOW);
 
-            if (_mon_pin != 255)    // Check if a monitor PIN is implemented.
+            if (_mon_pin != 255) // Check if a monitor PIN is implemented.
             {
                 pinMode(_mon_pin, INPUT_PULLUP); // default
+                digitalWrite(_mon_pin, LOW);     // Is this OK?
             }
 
             msgBroker.registerMessage(new StateMsg(*this, _topic + "/state"));
@@ -74,15 +75,15 @@ namespace Services
         // ----------------------------------------------------------
         bool onMessage(JsonDocument payload)
         {
-            unsigned long now = millis();
+            static unsigned long _lastCmd = millis();
 
-            // ⚠️ Debounce: Ignore MQTT commands arriving too quickly
-            if (now - _lastCmd < _debounceMs)
+            // Debounce: Ignore MQTT commands arriving too quickly
+            if (millis() - _lastCmd < _debounceMs)
             {
-                LOGGER_NOTICE_FMT("%s: command debounced (%lums)", _topic.c_str(), now - _lastCmd);
+                LOGGER_NOTICE_FMT("%s: command debounced (%lums)", _topic.c_str(), millis() - _lastCmd);
                 return true;
             }
-            _lastCmd = now;
+            _lastCmd = millis();
 
             // Accept only boolean
             if (payload.is<bool>())
@@ -116,6 +117,14 @@ namespace Services
         // ----------------------------------------------------------
         virtual void setState(bool on)
         {
+            if (on)
+            {
+                _onSince = millis(); // Zeitpunkt des Einschaltens speichern
+            }
+            else
+            {
+                _onSince = 0; // Beim Ausschalten zurücksetzen
+            }
             _state = on;
             digitalWrite(_pump_pin, on ? HIGH : LOW);
 
