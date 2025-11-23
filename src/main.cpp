@@ -107,9 +107,9 @@ void loop()
     digitalWrite(LED_BUILTIN, lastState);
     lastState = !lastState;
 
-      PumpHCl->update();
-      PumpNaOH->update();
-      PumpAlgizid->update();
+      // PumpHCl->update();
+      // PumpNaOH->update();
+      // PumpAlgizid->update();
 
     lastMillis = millis();
   }
