@@ -75,15 +75,15 @@ namespace Services
         // ----------------------------------------------------------
         bool onMessage(JsonDocument payload)
         {
-            // static unsigned long _lastCmd = millis();
+            static unsigned long _lastCmd = millis();
 
-            // // Debounce: Ignore MQTT commands arriving too quickly
-            // if (millis() - _lastCmd <= _debounceMs)
-            // {
-            //     LOGGER_NOTICE_FMT("%s: command debounced (%lums)", _topic.c_str(), millis() - _lastCmd);
-            //     return true;
-            // }
-            // _lastCmd = millis();
+            // Debounce: Ignore MQTT commands arriving too quickly
+            if (millis() - _lastCmd <= _debounceMs)
+            {
+                LOGGER_NOTICE_FMT("%s: command debounced (%lums)", _topic.c_str(), millis() - _lastCmd);
+                return true;
+            }
+            _lastCmd = millis();
 
             // Accept only boolean
             if (payload.is<bool>())
@@ -102,6 +102,7 @@ namespace Services
         {
             if (_state && _timeoutMs > 0 && _onSince > 0)
             {
+                LOGGER_NOTICE_FMT("%s: timeout reached (%lums)", _topic.c_str(), _timeoutMs);
                 if (now - _onSince >= _timeoutMs)
                 {
                     LOGGER_NOTICE_FMT("%s: timeout reached (%lums)", _topic.c_str(), _timeoutMs);
