@@ -19,9 +19,6 @@ namespace Services
         OneWire *_interface;
         DallasTemperature *_sensor;
         char _msg[30];
-        float _temperaturePool;
-        float _temperaturePoolMin;
-        float _temperaturePoolMax;
 
     public:
         Temperature(const String &name) : Task::Base(name)
@@ -44,36 +41,38 @@ namespace Services
 
         virtual void update() override
         {
-            _temperaturePoolMax = _temperaturePool;
-            _temperaturePoolMin = _temperaturePool;
+            static float _pool_tmin = 1000;
+            static float _pool_tmax = -1000;
 
-            _sensor->requestTemperatures(); // Send the command to get temperatures
-            _temperaturePool = _sensor->getTempCByIndex(0);
+            _sensor->requestTemperatures();
+            float _current_pool = _sensor->getTempCByIndex(0);
 
-            if (_temperaturePool != DEVICE_DISCONNECTED_C)
+            if (_current_pool == DEVICE_DISCONNECTED_C || _current_pool == 85.0)
             {
-                sprintf(_msg, "{ \"value\":%.1f }", _temperaturePool);
-                _network->pubMsg("outGarden/temperature", _msg);
-            }
-            else
-            {
-                LOGGER_ERROR("Error: Could not read temperature data");
+                LOGGER_ERROR("Sensor error!");
+                return;
             }
 
-            if (_temperaturePool >= _temperaturePoolMax)
+            LOGGER_NOTICE_FMT("Pool current: %.1f min = %.1f max = %.1f\n", _current_pool, _pool_tmin, _pool_tmax);
+
+            if (_current_pool < _pool_tmin)
             {
-                _temperaturePoolMax = _temperaturePool;
-                sprintf(_msg, "{ \"value\":%.1f }", _temperaturePoolMax);
-                _network->pubMsg("outGarden/temperatureMax", _msg);
-                LOGGER_NOTICE_FMT("Tempearture Max: %,1f", _temperaturePoolMax);
+                _pool_tmin = _current_pool;
+                sprintf(_msg, "{ \"value\":%.1f }", _pool_tmin);
+                _network->pubMsg("outGarden/pool_temp_min", _msg);
+                LOGGER_NOTICE_FMT("temp min: %.1f", _pool_tmin);
             }
-            if (_temperaturePool < _temperaturePoolMin)
+
+            if (_current_pool > _pool_tmax)
             {
-                _temperaturePoolMin = _temperaturePool;
-                sprintf(_msg, "{ \"value\":%.1f }", _temperaturePoolMin);
-                _network->pubMsg("outGarden/temperatureMin", _msg);
-                LOGGER_NOTICE_FMT("Tempearture Min: %,1f", _temperaturePoolMin);
+                _pool_tmax = _current_pool;
+                sprintf(_msg, "{ \"value\":%.1f }", _pool_tmax);
+                _network->pubMsg("outGarden/pool_temp_max", _msg);
+                LOGGER_NOTICE_FMT("temp max: %.1f", _pool_tmax);
             }
-        };
+
+            sprintf(_msg, "{ \"value\":%.1f }", _current_pool);
+            _network->pubMsg("outGarden/current_temp_pool", _msg);
+        }
     };
 } // End namespace Services

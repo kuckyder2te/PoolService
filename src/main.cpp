@@ -87,7 +87,7 @@ void setup()
 
   Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
-      ->startFps(0.017); // ~ 1 minute
+      ->startFps(0.017); //0.017 ~ 1 minute
 
   msgBroker.printTopics();
   LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");
