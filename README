@@ -1,15 +1,18 @@
-# Pool Service
-Controller for pool
-NEW
-NEW NEW
+# Garden Service
+Controller for pool and garden
 
 ## Overview
 This project is an Arduino-based application for the ESP32 that controls various modules including pumps, LEDs, temperatur sensor, and MQTT network communication. It uses PlatformIO as the build system.
 
 ## Features
-- Chemicals are added using 3 12V peristaltic pumps.
+- Chemicals are added using 3 12V peristaltic pumps
+- The chemical lines are automatically flushed.
+- The pool pump is controlled via a schedule and manual on/off switching
+- The pool can be filled.
 - RGB LED strips for color gradients and ambience
-- Temperature measurement in the pool
+- Temperature measurement in the pool and ground
+- Garden watering
+- The pont pump via a schedule and manual on/off switching
 - Considered pH measurement in the pool in the pool
 - MQTT communication for remote control
 - Task-based architecture using TaskManager
@@ -21,80 +24,93 @@ This project is an Arduino-based application for the ESP32 that controls various
 - ESP32 upesy_wroom
 
 ## Connectors
-#### J1 - 5V supply
-| PIN | Signal |<br>
-|--1--|--+12V--|<br>
-|--2--|--GND---|<br>
-|--3--|--+5V---|<br>
+## J1 - 5V supply
+| PIN | Signal | 
+|------|--------|
+| 1 | +12V | 
+| 2 | GND -| 
+| 3 | +5V -| 
 
-#### J2 - aux 12V out
-| PIN | Signal |<br>
-|--1--|--+12V--|<br>
-|--2--|--GND---|<br>
-|--3--|--+5V---|<br>
+## J2 - aux 12V out
+| PIN | Signal | 
+|------|--------|
+| 1 | +12V | 
+| 2 | GND -| 
+| 3 | +5V -| 
 
-#### J3 - Safety jumper
-| PIN | Signal |<br>
-|--1--|-----|<br>
-|--2--|-----|<br>
+## J3 - Safety jumper
+| PIN | Signal | 
+|------|--------|
+| 1 |  -| 
+| 2 |  -| 
 
-#### J4 - 12V In main
-| PIN | Signal |<br>
-|--1--|---J3---|<br>
-|--2--|+12V IN-|<br>
+## J4 - 12V In main
+| PIN | Signal | 
+|------|--------|
+| 1 | -J3 -| 
+| 2 |+12V IN-| 
 
-#### J5 - HCl pump
-| PIN | Signal |<br>
-|--1--|--C Q1--|<br>
-|--2--|+12V IN-|<br>
+## J5 - HCl pump
+| PIN | Signal | 
+|------|--------|
+| 1 | C Q1 | 
+| 2 |+12V IN-| 
 
-#### J6 - NaOH pump
-| PIN | Signal |<br>
-|--1--|--C Q2--|<br>
-|--2--|+12V IN-|<br>
+## J6 - NaOH pump
+| PIN | Signal | 
+|------|--------|
+| 1 | C Q2 | 
+| 2 |+12V IN-| 
 
-#### J7 - Algizid pump
-| PIN | Signal |<br>
-|--1--|--C Q3--|<br>
-|--2--|+12V IN-|<br>
+## J7 - Algizid pump
+| PIN | Signal | 
+|------|--------|
+| 1 | C Q3 | 
+| 2 |+12V IN| 
 
-#### J8 - not there
+## J8 - not there
 
-#### J9 - aux I°C not in use
-| PIN | Signal |<br>
-|--1--|--3V3---|<br>
-|--2--|--GND---|<br>
-|--3--|--SCL---|<br>
-|--4--|--SDA---|<br>
+## J9 - aux I°C not in use
+| PIN | Signal | 
+|------|--------|
+| 1 | 3V3 | 
+| 2 | GND | 
+| 3 | SCL | 
+| 4 | SDA | 
 
-#### J10 - Relays
-| PIN | Signal | Color |<br>
-|--1--|--NC----|-------|<br>
-|--2--|--PONT--|-------|<br>
-|--3--|--HEAT--|-------|<br>
-|--4--|--GND---|-------|<br>
-|--5--|--5V----|-------|<br>
+## J10 - Relays
+| PIN | Signal | Color | 
+|------|--------|-------|
+| 1 | NC  |   | 
+| 2 | PONT |  | 
+| 3 | HEAT |  | 
+| 4 | GND |  | 
+| 5 | 5V  |   | 
 
-#### J11 - Dallas temperature sensor
-|--1--|--3V3---|<br>
-|--2--|-Signal-|<br>
-|--3--|--GND---|<br>
+## J11 - Dallas temperature sensor
+| PIN |  Signal   | Color |
+|------|--------|--------|
+| 1 | 3V3 | 
+| 2 | Signal | 
+| 3 | GND | 
 
-#### J12 - LED stripes
-| PIN |  Signal   | Color |<br>
-|--1--|----GND----|-------|<br>
-|--2--|-LED red---|-------|<br>
-|--3--|-LED blue--|-------|<br>
-|--4--|-LED green-|-------|<br>
-|--5--|-----5V-- -|-------|<br>
+## J12 - LED stripes
+| PIN |  Signal   | Color | 
+|------|--------|--------|
+| 1 |  GND  |   | 
+| 2 | LED red  |   | 
+| 3 | LED blue |   | 
+| 4 | LED green |   | 
+| 5 |  -5V   |    | 
 
 
-#### Valve Relays
-|...Actor......|....Color.....|<br>
-|....terrace---|--rown/blue---|<br>
-|-----garden---|--grey/red----|<br>
-|--pool füllen-|-green/black--|<br>
-|-----+12V-----|-yellow/white-|<br>
+## Valve Relays
+| .Actor   |  Color  | 
+|------|--------|
+|  terrace| rown/blue | 
+|  garden | grey/red  | 
+| pool füllen|green/black | 
+|  +12V  |yellow/white| 
 
 
 
@@ -114,6 +130,10 @@ The project follows a modular design with the following key components:
 #define PW "MQTT_Password"
 ```
 
+### IP Adress
+- Garden 192.168.2.195/update
+- Poolservices 192.168.2.211/update
+
 ## MQTT Topics
 The system uses the following MQTT topics for communication:
 
@@ -125,9 +145,9 @@ The system uses the following MQTT topics for communication:
 - inGarden/algizid_hclpump/state - Control algizid pump ON/OFF
 - inGarden/hcl_pump/state - Control HCL pump ON/OFF
 - `inGarden/naoh_pump/state` - Control NaOH pump ON/OFF
-- `inGarden/garden_valve/state` - Control garden valve for watering
+- `inGarden/hcl_pump/state` - Control HCl pump ON/OFF
+- `inGarden/algezid_pump/state` - Control Algezid pump ON/OFF
 - `inGarden/rinse_valve/state` - Control rinse valve for pool
-- `inGarden/terrace_valve/state` - Control terrace valve for watering
 - Protection against uncontrolled pump action. -
 - e.g. A pump PIN is HIGH (it means, the pump is off), but the pump is still running.
 - `outGarden/algizid_error", "false"`
@@ -135,11 +155,13 @@ The system uses the following MQTT topics for communication:
 - `outGarden/hcl_error", "false"`
 
 #### Monitor PINs
-| PIN OUT | PIN Monotor | Error |<br>
-|---LOW --|----LOW -----|--true-|<br>
-|---HIGH--|----LOW------|-false-|<br>
-|---LOW---|----HIGH-----|-false-|<br>
-|---HIGH--|----High-----|--true-|<br>
+
+| PIN OUT | PIN Monotor | Error | 
+|------|--------|---------|
+| LOW  |  LOW   | true| 
+| HIGH |  LOW   |false| 
+| LOW |  HIGH  |false| 
+| HIGH |  High  | true| 
 
 
 - `inGarden/controller/config` - Controller configuration endpoint
