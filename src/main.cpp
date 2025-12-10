@@ -59,11 +59,12 @@ void setup()
   Logger::setOutputFunction(&MyLoggerOutput::localLogger);
 #endif
 #ifdef DEBUG_DESTINATION_UDP
-  Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
+ // Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
+  Logger::setOutputFunction(&MyLoggerOutput::willyUdpLogger);
 #endif
   Logger::setLogLevel(Logger::DEBUG); // Muss immer einen Wert in platformio.ini haben (SILENT)
   delay(500);                         // For switching on Serial Monitor
-  LOGGER_NOTICE_FMT("************************* Poolservic (%s) *************************", __TIMESTAMP__);
+  LOGGER_NOTICE_FMT("************************* Poolservice (%s) *************************", __TIMESTAMP__);
   LOGGER_NOTICE("Start building Poolservice");
 
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
