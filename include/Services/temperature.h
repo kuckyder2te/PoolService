@@ -63,7 +63,7 @@ namespace Services
                 LOGGER_NOTICE_FMT("temp min: %.1f", _pool_tmin);
             }
 
-            if (_current_pool > _pool_tmax)
+            if (_current_pool >= _pool_tmax)
             {
                 _pool_tmax = _current_pool;
                 sprintf(_msg, "{ \"value\":%.1f }", _pool_tmax);

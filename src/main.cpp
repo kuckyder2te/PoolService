@@ -24,6 +24,7 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/services/pump_pont.h"
 #include "../include/services/pump_heat.h"
 #include "../include/services/ambience.h"
+#include "../include/services/ph_placebo.h"
 
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -59,7 +60,7 @@ void setup()
   Logger::setOutputFunction(&MyLoggerOutput::localLogger);
 #endif
 #ifdef DEBUG_DESTINATION_UDP
- // Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
+  // Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
   Logger::setOutputFunction(&MyLoggerOutput::willyUdpLogger);
 #endif
   Logger::setLogLevel(Logger::DEBUG); // Muss immer einen Wert in platformio.ini haben (SILENT)
@@ -84,11 +85,16 @@ void setup()
   PumpHeat = new Services::Pump_heat(HEAT_PUMP, 255);
 
   /* LED lights*/
-  LEDLights = new Services::Ambience(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);
+  //LEDLights = new Services::Ambience();
+ LEDLights = new Services::Ambience(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);
 
   Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
-      ->startFps(0.017); //0.017 ~ 1 minute
+      ->startFps(0.017); // 0.017 ~ 1 minute
+
+  Tasks.add<Services::PH_Placebo>("pH")
+      ->init(DALLAS)
+      ->startFps(0.0033); // ~ 5 minuten
 
   msgBroker.printTopics();
   LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");
@@ -106,12 +112,15 @@ void loop()
   if (millis() - lastMillis >= 1000) // This can also be used to test the main loop.
   {
     digitalWrite(LED_BUILTIN, lastState);
+    Serial.println("Loop IN");
     lastState = !lastState;
 
-      PumpHCl->update();
-      PumpNaOH->update();
-      PumpAlgizid->update();
+    PumpHCl->update();
+    PumpNaOH->update();
+    PumpAlgizid->update();
 
+    //LEDLights->update();
+    Serial.println("Loop OUT");
     lastMillis = millis();
   }
 
