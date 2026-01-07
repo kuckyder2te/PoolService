@@ -60,8 +60,8 @@ void setup()
   Logger::setOutputFunction(&MyLoggerOutput::localLogger);
 #endif
 #ifdef DEBUG_DESTINATION_UDP
-  // Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
-  Logger::setOutputFunction(&MyLoggerOutput::willyUdpLogger);
+  Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
+  //Logger::setOutputFunction(&MyLoggerOutput::willyUdpLogger);
 #endif
   Logger::setLogLevel(Logger::DEBUG); // Muss immer einen Wert in platformio.ini haben (SILENT)
   delay(500);                         // For switching on Serial Monitor
@@ -72,8 +72,8 @@ void setup()
   //_network->begin("192.168.2.157",PORT_FOR_POOLSERVICE);
   _network->begin(MQTT, PORT_FOR_POOLSERVICE);
 
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
+  // pinMode(LED_BUILTIN, OUTPUT);
+  // digitalWrite(LED_BUILTIN, LOW);
 
   /*Dosing pumps*/
   PumpNaOH = new Services::Pump_naoh(NAOH_PUMP, NAOH_MON);
@@ -114,7 +114,7 @@ void loop()
 
   if (millis() - lastMillis >= 1000) // This can also be used to test the main loop.
   {
-    digitalWrite(LED_BUILTIN, lastState);
+    // digitalWrite(LED_BUILTIN, lastState);
     Serial.println("Loop IN");
     lastState = !lastState;
 
