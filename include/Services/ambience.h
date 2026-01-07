@@ -88,6 +88,8 @@ namespace Services
             analogWrite(_LED_red_pin, 255);
             analogWrite(_LED_green_pin, 255);
             analogWrite(_LED_blue_pin, 255);
+
+            //_currentState = LightState::FADE; ///Test
         }
 
         virtual void update() override
