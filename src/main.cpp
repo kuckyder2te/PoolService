@@ -86,7 +86,10 @@ void setup()
 
   /* LED lights*/
   //LEDLights = new Services::Ambience();
- LEDLights = new Services::Ambience(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);
+  //LEDLights = new Services::Ambience("ambience", LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);
+  Tasks.add<Services::Ambience>("ambience")
+      ->init(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE)
+      ->startFps(10); // 10 Hz = alle 100ms
 
   Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
