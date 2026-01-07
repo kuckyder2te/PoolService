@@ -46,8 +46,8 @@ namespace Services
             _r = 0;
             _g = 0;
             _b = 0;
-            msgBroker.registerMessage(new State("inGarden/ambient/state"));
-            msgBroker.registerMessage(new Color("inGarden/ambient/color"));
+            msgBroker.registerMessage(new State("pool_light/state"));
+            msgBroker.registerMessage(new Color("pool_light/colors/rgb"));
         }
 
         Ambience* init(uint8_t led_red, uint8_t led_green, uint8_t led_blue) 
@@ -78,18 +78,14 @@ namespace Services
             // The update function is called every 100ms
             // The actual LED control is handled by the MQTT callbacks
             // This function can be used for additional periodic tasks if needed
-            LOGGER_NOTICE("Tick");
+            //LOGGER_NOTICE("Tick");
         }
     };
     
-    uint8_t Ambience::_r;
-    uint8_t Ambience::_g;
-    uint8_t Ambience::_b;
-
     bool Ambience::State::call(JsonDocument payload)
     { // Hier die call Implementierung des Prototyps
         LOGGER_NOTICE_FMT("Set State to: %d", (uint8_t)payload["value"]);
-        if (payload["value"])
+        if ((uint8_t)payload["value"])
         {
             analogWrite(LED_STRIPE_RED, 255 - _r);
             analogWrite(LED_STRIPE_GREEN, 255 - _g);
@@ -101,19 +97,24 @@ namespace Services
             analogWrite(LED_STRIPE_GREEN, 255);
             analogWrite(LED_STRIPE_BLUE, 255);
         }
-        return _network->pubMsg("inGarden/ambient/state", payload);
+        return _network->pubMsg("pool_light/state", payload);
     }
 
     bool Ambience::Color::call(JsonDocument payload)
     {
-        LOGGER_NOTICE_FMT("Set Color %s", payload["color"]);
-        _r = payload["color"]["r"];
-        _g = payload["color"]["g"];
-        _b = payload["color"]["b"];
+        LOGGER_NOTICE("Enter");
+        //LOGGER_NOTICE_FMT("Set Color %s", payload["value"]);      // Didn't work because payload is an object
+        _r = payload["value"]["r"];
+        _g = payload["value"]["g"];
+        _b = payload["value"]["b"];
         analogWrite(LED_STRIPE_RED, 255 - _r);
         analogWrite(LED_STRIPE_GREEN, 255 - _g);
         analogWrite(LED_STRIPE_BLUE, 255 - _b);
-        return _network->pubMsg("inGarden/ambient/color", payload);
+        return _network->pubMsg("pool_light/colors/rgb", payload);
     }
+
+    uint8_t Ambience::_r;
+    uint8_t Ambience::_g;
+    uint8_t Ambience::_b;
 
 } // End namespace Services

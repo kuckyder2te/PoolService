@@ -98,13 +98,12 @@ bool Network::pubMsg(const char *topic, const char *payload)
 
 bool Network::pubMsg(const char *topic, const JsonDocument payload)
 {
-    LOGGER_NOTICE_FMT("%s - %s", topic, payload);
-    // LOGGER_NOTICE_FMT("%s - %s", topic, String(payload["payload"]).c_str());  // Fehler
     String output;
     serializeJson(payload, output);
     String Topic = ROOT_OUT_TOPIC "/";
     Topic += topic;
     Serial.println(Topic);
+    LOGGER_NOTICE_FMT("%s - %s", Topic, output);
     return _mqtt_client->publish(Topic.c_str(), output.c_str());
 }
 
