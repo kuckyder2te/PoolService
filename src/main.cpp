@@ -68,7 +68,7 @@ void setup()
   Logger::setOutputFunction(&MyLoggerOutput::localLogger);
 #endif
 #ifdef DEBUG_DESTINATION_UDP
- // Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
+  // Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
   Logger::setOutputFunction(&MyLoggerOutput::willyUdpLogger);
 #endif
   Logger::setLogLevel(Logger::DEBUG); // Muss immer einen Wert in platformio.ini haben (SILENT)
@@ -104,7 +104,11 @@ PumpPeristalticAlgizid = new Services::PumpPeristalticAlgizid();
 
   Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
-      ->startFps(0.017); //0.017 ~ 1 minute
+      ->startFps(0.017); // 0.017 ~ 1 minute
+
+  Tasks.add<Services::PH_Placebo>("pH")
+      ->init(DALLAS)
+      ->startFps(0.0033); // ~ 5 minuten
 
         Tasks.add<Services::PH_Placebo>("pH")
       ->init(DALLAS)
@@ -127,6 +131,7 @@ void loop()
   if (millis() - lastMillis >= 1000) // This can also be used to test the main loop.
   {
     digitalWrite(LED_BUILTIN, lastState);
+    Serial.println("Loop IN");
     lastState = !lastState;
 
       // PumpHCl->update();
@@ -139,6 +144,8 @@ void loop()
 
       //LEDLights->update();
 
+    //LEDLights->update();
+    Serial.println("Loop OUT");
     lastMillis = millis();
   }
 
