@@ -24,6 +24,7 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/services/pump_pont.h"
 #include "../include/services/pump_heat.h"
 #include "../include/services/ambience.h"
+#include "../include/services/ph_placebo.h"
 
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -84,11 +85,17 @@ void setup()
   PumpHeat = new Services::Pump_heat(HEAT_PUMP, 255);
 
   /* LED lights*/
+  //LEDLights = new Services::Ambience();
   LEDLights = new Services::Ambience(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);
 
   Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
       ->startFps(0.017); //0.017 ~ 1 minute
+
+        Tasks.add<Services::PH_Placebo>("pH")
+      ->init(DALLAS)
+      ->startFps(0.0033); // ~ 5 minuten
+
 
   msgBroker.printTopics();
   LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");
@@ -111,6 +118,8 @@ void loop()
       PumpHCl->update();
       PumpNaOH->update();
       PumpAlgizid->update();
+
+      //LEDLights->update();
 
     lastMillis = millis();
   }
