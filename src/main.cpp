@@ -18,11 +18,8 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/network.h"
 #include "../include/messageBroker.h"
 #include "../include/services/temperature.h"
-// #include "../include/services/pump_hcl.h"
 #include "../include/services/pump_peristaltic_hcl.h"
-// #include "../include/services/pump_naoh.h"
 #include "../include/services/pump_peristaltic_naoh.h"
-// #include "../include/services/pump_algizid.h"
 #include "../include/services/pump_peristaltic_algizid.h"
 #include "../include/services/pump_pont.h"
 #include "../include/services/pump_heat.h"
@@ -41,9 +38,6 @@ HardwareSerial *DebugOutput = &Serial;
 
 MessageBroker msgBroker;
 
-// Services::Pump_naoh *PumpNaOH;
-// Services::Pump_hcl *PumpHCl;
-// Services::Pump_algizid *PumpAlgizid;
 
 Services::PumpPeristalticAlgizid *PumpPeristalticAlgizid;
 Services::PumpPeristalticNAOH *PumpPeristalticNAOH;
@@ -136,10 +130,6 @@ void loop()
     // digitalWrite(LED_BUILTIN, lastState);
     Serial.println("Loop IN");
     lastState = !lastState;
-
-      // PumpHCl->update();
-      // PumpNaOH->update();
-      // PumpAlgizid->update();
 
       PumpPeristalticAlgizid->update();
       PumpPeristalticHCL->update();
