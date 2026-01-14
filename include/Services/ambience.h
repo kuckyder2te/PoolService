@@ -63,8 +63,8 @@ namespace Services
             _r = 0;
             _g = 0;
             _b = 0;
-            msgBroker.registerMessage(new State("pool_light/state"));
-            msgBroker.registerMessage(new Color("pool_light/colors/rgb"));
+            msgBroker.registerMessage(new State("pool/light/state"));
+            msgBroker.registerMessage(new Color("pool/light/colors/rgb"));
         }
 
         Ambience* init(uint8_t led_red, uint8_t led_green, uint8_t led_blue) 

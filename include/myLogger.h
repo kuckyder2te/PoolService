@@ -102,8 +102,8 @@ public:
             Source.replace(".", "");
             payload["millis"] = millis();
             payload["level"] = Logger::asString(level);
-            payload["message"] = message;
             payload["source"] = Source;
+            payload["message"] = message;
             if (_network != NULL)
             { // If Network isn't available yet
                 _network->sendLoggerMessage(payload);
