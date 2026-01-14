@@ -18,9 +18,12 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/network.h"
 #include "../include/messageBroker.h"
 #include "../include/services/temperature.h"
-#include "../include/services/pump_hcl.h"
-#include "../include/services/pump_naoh.h"
-#include "../include/services/pump_algizid.h"
+// #include "../include/services/pump_hcl.h"
+#include "../include/services/pump_peristaltic_hcl.h"
+// #include "../include/services/pump_naoh.h"
+#include "../include/services/pump_peristaltic_naoh.h"
+// #include "../include/services/pump_algizid.h"
+#include "../include/services/pump_peristaltic_algizid.h"
 #include "../include/services/pump_pont.h"
 #include "../include/services/pump_heat.h"
 #include "../include/services/ambience.h"
@@ -36,11 +39,16 @@ JsonDocument doc;
 HardwareSerial *TestOutput = &Serial;
 HardwareSerial *DebugOutput = &Serial;
 
-MessageBroker msgBroker; // Change by Kucky Chat GPT
+MessageBroker msgBroker;
 
-Services::Pump_naoh *PumpNaOH;
-Services::Pump_hcl *PumpHCl;
-Services::Pump_algizid *PumpAlgizid;
+// Services::Pump_naoh *PumpNaOH;
+// Services::Pump_hcl *PumpHCl;
+// Services::Pump_algizid *PumpAlgizid;
+
+Services::PumpPeristalticAlgizid *PumpPeristalticAlgizid;
+Services::PumpPeristalticNAOH *PumpPeristalticNAOH;
+Services::PumpPeristalticHCL *PumpPeristalticHCL;
+
 
 Services::Pump_pont *PumpPont;
 Services::Pump_heat *PumpHeat;
@@ -76,9 +84,15 @@ void setup()
   digitalWrite(LED_BUILTIN, LOW);
 
   /*Dosing pumps*/
-  PumpNaOH = new Services::Pump_naoh(NAOH_PUMP, NAOH_MON);
-  PumpHCl = new Services::Pump_hcl(HCL_PUMP, HCL_MON);
-  PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
+  // PumpNaOH = new Services::Pump_naoh(NAOH_PUMP, NAOH_MON);
+  PumpPeristalticNAOH = new Services::PumpPeristalticNAOH();
+
+  // PumpHCl = new Services::Pump_hcl(HCL_PUMP, HCL_MON);
+PumpPeristalticHCL = new Services::PumpPeristalticHCL();
+
+  // PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
+PumpPeristalticAlgizid = new Services::PumpPeristalticAlgizid();
+
 
   /*220V pumps*/
   PumpPont = new Services::Pump_pont(PONT_PUMP, 255);
@@ -115,9 +129,13 @@ void loop()
     digitalWrite(LED_BUILTIN, lastState);
     lastState = !lastState;
 
-      PumpHCl->update();
-      PumpNaOH->update();
-      PumpAlgizid->update();
+      // PumpHCl->update();
+      // PumpNaOH->update();
+      // PumpAlgizid->update();
+
+      PumpPeristalticAlgizid->update();
+      PumpPeristalticHCL->update();
+      PumpPeristalticNAOH->update();
 
       //LEDLights->update();
 

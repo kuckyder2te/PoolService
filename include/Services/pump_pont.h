@@ -14,7 +14,7 @@ namespace Services
         public:
         Pump_pont(uint8_t pin,
                   uint8_t monpin) // not exist
-            : DosingPumps(pin, monpin, "pont_pump", 0, 0) {}
+            : DosingPumps(pin, monpin, "pont/pump", 0, 0) {}
     };
 
 } // end of namespace Services

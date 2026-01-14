@@ -14,7 +14,7 @@ namespace Services
     public:
         Pump_heat(uint8_t pin,
                   uint8_t monpin) // not exist
-            : DosingPumps(pin, monpin, "heat_pump", 0, 0)
+            : DosingPumps(pin, monpin, "pool/pump/heat", 0, 0)
         {
         }
     };
