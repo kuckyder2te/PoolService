@@ -38,12 +38,6 @@ HardwareSerial *DebugOutput = &Serial;
 
 MessageBroker msgBroker;
 
-
-Services::PumpPeristalticAlgizid *PumpPeristalticAlgizid;
-Services::PumpPeristalticNAOH *PumpPeristalticNAOH;
-Services::PumpPeristalticHCL *PumpPeristalticHCL;
-
-
 Services::Pump_pont *PumpPont;
 Services::Pump_heat *PumpHeat;
 
@@ -77,24 +71,11 @@ void setup()
   // pinMode(LED_BUILTIN, OUTPUT);
   // digitalWrite(LED_BUILTIN, LOW);
 
-  /*Dosing pumps*/
-  // PumpNaOH = new Services::Pump_naoh(NAOH_PUMP, NAOH_MON);
-  PumpPeristalticNAOH = new Services::PumpPeristalticNAOH();
-
-  // PumpHCl = new Services::Pump_hcl(HCL_PUMP, HCL_MON);
-PumpPeristalticHCL = new Services::PumpPeristalticHCL();
-
-  // PumpAlgizid = new Services::Pump_algizid(ALGIZID_PUMP, ALGIZID_MON);
-PumpPeristalticAlgizid = new Services::PumpPeristalticAlgizid();
-
-
   /*220V pumps*/
   PumpPont = new Services::Pump_pont(PONT_PUMP, 255);
   PumpHeat = new Services::Pump_heat(HEAT_PUMP, 255);
 
   /* LED lights*/
-  //LEDLights = new Services::Ambience();
-  //LEDLights = new Services::Ambience("ambience", LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE);
   Tasks.add<Services::Ambience>("ambience")
       ->init(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE)
       ->startFps(10); // 10 Hz = alle 100ms
@@ -104,38 +85,26 @@ PumpPeristalticAlgizid = new Services::PumpPeristalticAlgizid();
       ->startFps(0.017); // 0.017 ~ 1 minute
 
   Tasks.add<Services::PH_Placebo>("pH")
-      ->init(DALLAS)
+      ->init(DALLAS)                    // not used
       ->startFps(0.0033); // ~ 5 minuten
 
-        Tasks.add<Services::PH_Placebo>("pH")
-      ->init(DALLAS)
-      ->startFps(0.0033); // ~ 5 minuten
+  // Add peristaltic pumps to TaskManager
+  Tasks.add<Services::PumpPeristalticHCL>("pump_hcl")
+      ->startFps(10); // 10 Hz = alle 100ms
 
+  Tasks.add<Services::PumpPeristalticNAOH>("pump_naoh")
+      ->startFps(10); // 10 Hz = alle 100ms
+
+  Tasks.add<Services::PumpPeristalticAlgizid>("pump_algizid")
+      ->startFps(10); // 10 Hz = alle 100ms
 
   msgBroker.printTopics();
+
   LOGGER_NOTICE("Finished building Poolservice. Will enter infinite loop");
 } /*--------------------------------------------------------------------------*/
 
 void loop()
 {
-  static unsigned long lastMillis;
-  static bool lastState = LOW;
-
   _network->update();
-
   Tasks.update();
-
-  if (millis() - lastMillis >= 1000) // This can also be used to test the main loop.
-  {
-    Serial.println("Loop IN");
-    lastState = !lastState;
-
-      PumpPeristalticAlgizid->update();
-      // PumpPeristalticHCL is now managed by TaskManager
-      PumpPeristalticNAOH->update();
-
-    Serial.println("Loop OUT");
-    lastMillis = millis();
-  }
-
 } /*--------------------------------------------------------------------------*/
