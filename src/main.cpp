@@ -127,17 +127,13 @@ void loop()
 
   if (millis() - lastMillis >= 1000) // This can also be used to test the main loop.
   {
-    // digitalWrite(LED_BUILTIN, lastState);
     Serial.println("Loop IN");
     lastState = !lastState;
 
       PumpPeristalticAlgizid->update();
-      PumpPeristalticHCL->update();
+      // PumpPeristalticHCL is now managed by TaskManager
       PumpPeristalticNAOH->update();
 
-      //LEDLights->update();
-
-    //LEDLights->update();
     Serial.println("Loop OUT");
     lastMillis = millis();
   }
