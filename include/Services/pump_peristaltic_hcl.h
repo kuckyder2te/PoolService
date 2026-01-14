@@ -18,8 +18,8 @@ namespace Services
     public:
         /// @brief Konstruktor für die HCL-Pumpe
         /// @details Initialisiert die Pumpe mit den für Salzsäure spezifischen Pins und Parametern
-        PumpPeristalticHCL()
-            : PeristalticPumps(HCL_PUMP, HCL_MON, "pump/hcl", DEBOUNCE_TIME, TIMEOUT_HCL_PUMP) {}
+        PumpPeristalticHCL(const String& taskName)
+            : PeristalticPumps(taskName, HCL_PUMP, HCL_MON, "pump/hcl", TIMEOUT_HCL_PUMP) {}
     };
 } // end of namespace Services
 
