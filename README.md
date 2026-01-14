@@ -142,41 +142,42 @@ The system uses the following MQTT topics for communication:
 
 ### Supported Commands
 
-- inGarden/algizid_hclpump/state - Control algizid pump ON/OFF
-- inGarden/hcl_pump/state - Control HCL pump ON/OFF
-- `inGarden/naoh_pump/state` - Control NaOH pump ON/OFF
-- `inGarden/hcl_pump/state` - Control HCl pump ON/OFF
-- `inGarden/algezid_pump/state` - Control Algezid pump ON/OFF
-- `inGarden/rinse_valve/state` - Control rinse valve for pool
-- Protection against uncontrolled pump action. -
-- e.g. A pump PIN is HIGH (it means, the pump is off), but the pump is still running.
-- `outGarden/algizid_error", "false"`
-- `outGarden/naoh_error", "false"`
-- `outGarden/hcl_error", "false"`
+#### Peristaltic Pumps
+- `inGarden/pump/hcl/state` - Control HCl pump ON/OFF
+- `inGarden/pump/naoh/state` - Control NaOH pump ON/OFF
+- `inGarden/pump/algizid/state` - Control Algizid pump ON/OFF
 
-#### Monitor PINs
+#### Pont Pump
+- `inGarden/pont/pump/state` - Control Pont pump ON/OFF
 
-| PIN OUT | PIN Monotor | Error | 
-|------|--------|---------|
-| LOW  |  LOW   | true| 
-| HIGH |  LOW   |false| 
-| LOW |  HIGH  |false| 
-| HIGH |  High  | true| 
+### Status Updates
 
+#### Peristaltic Pumps
+- `outGarden/pump/hcl/state` - HCl pump status
+- `outGarden/pump/naoh/state` - NaOH pump status
+- `outGarden/pump/algizid/state` - Algizid pump status
 
-- `inGarden/controller/config` - Controller configuration endpoint
+#### Pont Pump
+- `outGarden/pont/pump/state` - Pont pump status
 
-### Debounce and Time out rules
-- The debouncing is always checked after 200 milliseconds bot only the dosingpumps. The debounce time must be checked.
-- The timeout depends on the specific pump. This option applies to all pumps.
+#### Temperature Monitoring
+- `outGarden/current_temp_pool` - Current pool temperature
+- `outGarden/pool_temp_min` - Minimum pool temperature
+- `outGarden/pool_temp_max` - Maximum pool temperature
 
-### Controller Configuration
-The controller now supports dynamic configuration through MQTT messages. The new configuration endpoint allows sending JSON payloads to `inGarden/controller/config` which will be processed and acknowledged with a response on `outGarden/controller/config`.
+#### Error Monitoring
+Each pump has automatic error detection through monitoring pins. Errors are reported through the respective pump state topics.
+
+##### Monitor PIN Logic
+
+| Pump PIN | Monitor PIN | Error Status |
+|----------|-------------|--------------|
+| LOW      | LOW         | true (Error) |
+| HIGH     | LOW         | false (OK)   |
+| LOW      | HIGH        | false (OK)   |
+| HIGH     | HIGH        | true (Error) |
 
 ## Building and Flashing
 1. Install PlatformIO
 2. Configure your network settings in `src/secrets.h`
 3. Build and upload using PlatformIO
-
-
-
