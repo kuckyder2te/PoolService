@@ -68,9 +68,6 @@ void setup()
   //_network->begin("192.168.2.157",PORT_FOR_POOLSERVICE);
   _network->begin(MQTT, PORT_FOR_POOLSERVICE);
 
-  // pinMode(LED_BUILTIN, OUTPUT);
-  // digitalWrite(LED_BUILTIN, LOW);
-
   /*220V pumps*/
   PumpPont = new Services::Pump_pont(PONT_PUMP, 255);
   PumpHeat = new Services::Pump_heat(HEAT_PUMP, 255);
