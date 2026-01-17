@@ -19,7 +19,7 @@ namespace Services
         /// @brief Konstruktor für die NaOH-Pumpe
         /// @details Initialisiert die Pumpe mit den für Natronlauge spezifischen Pins und Parametern
         PumpPeristalticNAOH(const String& taskName)
-            : PeristalticPumps(taskName, NAOH_PUMP, NAOH_MON, "pump/naoh", TIMEOUT_NAOH_PUMP) {}
+            : PeristalticPumps(taskName, NAOH_PUMP, NAOH_MON, "pool/pump/naoh", TIMEOUT_NAOH_PUMP) {}
     };
 } // end of namespace Services
 
