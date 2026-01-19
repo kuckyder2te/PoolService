@@ -117,7 +117,7 @@ namespace Services
         // ----------------------------------------------------------
         virtual void setState(bool on)
         {
-            LOGGER_NOTICE(" PeristalticPumpHCl");
+            
             if (on)
             {
                 _onSince = millis(); // Save time when turned on

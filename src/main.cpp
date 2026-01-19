@@ -75,19 +75,19 @@ void setup()
   /* LED lights*/
   Tasks.add<Services::Ambience>("ambience")
       ->init(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE)
-      ->startFps(10); // 10 Hz = alle 100ms
+      ->startFps(1); // 10 Hz = alle 100ms
 
   Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
-      ->startFps(0.017); // 0.017 ~ 1 minute
+      ->startFps(0.003); // ~ 5 minuten
 
   Tasks.add<Services::PH_Placebo>("pH")
       ->init(DALLAS)                    // not used
-      ->startFps(10); // ~ 5 minuten
+      ->startFps(0.003); // ~ 5 minuten
 
   // Add peristaltic pumps to TaskManager
   Tasks.add<Services::PumpPeristalticHCL>("pump_hcl")
-      ->startFps(0.0033); // 10 Hz = alle 100ms
+      ->startFps(10); // 10 Hz = alle 100ms
 
   Tasks.add<Services::PumpPeristalticNAOH>("pump_naoh")
       ->startFps(10); // 10 Hz = alle 100ms
