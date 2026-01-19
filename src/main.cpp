@@ -83,11 +83,11 @@ void setup()
 
   Tasks.add<Services::PH_Placebo>("pH")
       ->init(DALLAS)                    // not used
-      ->startFps(0.0033); // ~ 5 minuten
+      ->startFps(10); // ~ 5 minuten
 
   // Add peristaltic pumps to TaskManager
   Tasks.add<Services::PumpPeristalticHCL>("pump_hcl")
-      ->startFps(10); // 10 Hz = alle 100ms
+      ->startFps(0.0033); // 10 Hz = alle 100ms
 
   Tasks.add<Services::PumpPeristalticNAOH>("pump_naoh")
       ->startFps(10); // 10 Hz = alle 100ms

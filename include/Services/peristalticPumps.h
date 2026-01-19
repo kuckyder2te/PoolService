@@ -21,9 +21,8 @@ namespace Services
         uint8_t _mon_pin;
         String _topic;
         bool _state = false;
-        bool _last_mon_state = HIGH; // For debounce monitoring
+        bool _last_mon_state = HIGH; // For Transistor monitoring
         unsigned long _last_mon_change = 0;
-        unsigned long _mon_debounce_time = 50; // 50ms debounce for monitoring
 
         unsigned long _timeoutMs = 0; // 0 = disable
         unsigned long _onSince = 0;   // Time from which the pump is ON
@@ -118,6 +117,7 @@ namespace Services
         // ----------------------------------------------------------
         virtual void setState(bool on)
         {
+            LOGGER_NOTICE(" PeristalticPumpHCl");
             if (on)
             {
                 _onSince = millis(); // Save time when turned on
