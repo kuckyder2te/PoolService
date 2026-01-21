@@ -23,8 +23,7 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/services/pump_peristaltic_algizid.h"
 #include "../include/services/pump_pont.h"
 #include "../include/services/pump_heat.h"
-#include "../include/services/ambience.h"
-#include "../include/services/ph_placebo.h"
+//#include "../include/services/ambience.h"
 
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -38,10 +37,7 @@ HardwareSerial *DebugOutput = &Serial;
 
 MessageBroker msgBroker;
 
-Services::Pump_pont *PumpPont;
-Services::Pump_heat *PumpHeat;
-
-Services::Ambience *LEDLights;
+//Services::Ambience *LEDLights;
 
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
@@ -68,31 +64,35 @@ void setup()
   //_network->begin("192.168.2.157",PORT_FOR_POOLSERVICE);
   _network->begin(MQTT, PORT_FOR_POOLSERVICE);
 
-  /*220V pumps*/
-  PumpPont = new Services::Pump_pont(PONT_PUMP, 255);
-  PumpHeat = new Services::Pump_heat(HEAT_PUMP, 255);
-
   /* LED lights*/
-  Tasks.add<Services::Ambience>("ambience")
-      ->init(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE)
-      ->startFps(1); // 10 Hz = alle 100ms
+//   Tasks.add<Services::Ambience>("ambience")
+//       ->init(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE)
+//       ->startFps(1); // 10 Hz = alle 100ms
 
   Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
       ->startFps(0.003); // ~ 5 minuten
 
-  Tasks.add<Services::PH_Placebo>("pH")
-      ->init(DALLAS)                    // not used
-      ->startFps(0.003); // ~ 5 minuten
+  // Add 220V pumps to TaskManager
+  Tasks.add<Services::Pump_pont>("pump_pont")
+      ->init(PONT_PUMP, 255)
+      ->startFps(10); // 10 Hz = alle 100ms
+
+  Tasks.add<Services::Pump_heat>("pump_heat")
+      ->init(HEAT_PUMP, 255)
+      ->startFps(10); // 10 Hz = alle 100ms
 
   // Add peristaltic pumps to TaskManager
   Tasks.add<Services::PumpPeristalticHCL>("pump_hcl")
+      ->init(HCL_PUMP, HCL_MON, "pool/pump/hcl", TIMEOUT_HCL_PUMP)
       ->startFps(10); // 10 Hz = alle 100ms
 
   Tasks.add<Services::PumpPeristalticNAOH>("pump_naoh")
+      ->init(NAOH_PUMP, NAOH_MON, "pool/pump/naoh", TIMEOUT_NAOH_PUMP)
       ->startFps(10); // 10 Hz = alle 100ms
 
   Tasks.add<Services::PumpPeristalticAlgizid>("pump_algizid")
+      ->init(ALGIZID_PUMP, ALGIZID_MON, "pool/pump/algizid", TIMEOUT_ALGIZID_PUMP)
       ->startFps(10); // 10 Hz = alle 100ms
 
   msgBroker.printTopics();

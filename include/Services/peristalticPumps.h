@@ -21,11 +21,14 @@ namespace Services
         uint8_t _mon_pin;
         String _topic;
         bool _state = false;
-        bool _last_mon_state = HIGH; // For Transistor monitoring
-        unsigned long _last_mon_change = 0;
+        // bool _last_mon_state = HIGH; // For Transistor monitoring
+        // unsigned long _last_mon_change = 0;
 
         unsigned long _timeoutMs = 0; // 0 = disable
         unsigned long _onSince = 0;   // Time from which the pump is ON
+
+        unsigned long offTimeoutStart = 0;
+        const unsigned long OFF_TIMEOUT_MS = 3000; // z. B. 3 Sekunden
 
         String _topic_prefix; // e.g. "hcl_pump"
 
@@ -45,28 +48,22 @@ namespace Services
         };
 
     public:
-        PeristalticPumps(const String &taskName,
-                         uint8_t pumpPin,
-                         uint8_t monPin,
-                         const String &topic,
-                         unsigned long timeoutMs = 0)
+        PeristalticPumps(const String &taskName)
             : Task::Base(taskName),
-              _pump_pin(pumpPin),
-              _mon_pin(monPin),
-              _topic(topic),
-              _timeoutMs(timeoutMs)
+              _pump_pin(0),
+              _mon_pin(0),
+              _topic(""),
+              _timeoutMs(0)
         {
-            LOGGER_NOTICE_FMT("Create peristaltic pump '%s' on pin %d", _topic.c_str(), _pump_pin);
-            msgBroker.registerMessage(new StateMsg(*this, _topic + "/state"));
         }
 
-        virtual ~PeristalticPumps() = default;
-
-        // Initialize the pump pins
-        virtual void begin() override
+        PeristalticPumps *init(uint8_t pumpPin, uint8_t monPin, const String &topic, unsigned long timeoutMs = 0)
         {
-            LOGGER_NOTICE_FMT("Initializing peristaltic pump '%s' on pin %d", _topic.c_str(), _pump_pin);
-
+            _pump_pin = pumpPin;
+            _mon_pin = monPin;
+            _topic = topic;
+            _timeoutMs = timeoutMs;
+            LOGGER_NOTICE_FMT("Create peristaltic pump '%s' on pin %d", _topic.c_str(), _pump_pin);
             pinMode(_pump_pin, OUTPUT);
             digitalWrite(_pump_pin, LOW);
 
@@ -74,7 +71,11 @@ namespace Services
             {
                 pinMode(_mon_pin, INPUT_PULLUP); // default
             }
+            msgBroker.registerMessage(new StateMsg(*this, _topic + "/state"));
+            return this;
         }
+
+        virtual ~PeristalticPumps() = default;
 
         // ----------------------------------------------------------
         // Processing MQTT messages
@@ -98,6 +99,7 @@ namespace Services
         {
             // Check for transistor defect via monitoring pin
             checkMonitorPin();
+            checkOffTimeout();
 
             // Handle timeout if applicable
             if (_state && _timeoutMs > 0 && _onSince > 0)
@@ -117,15 +119,15 @@ namespace Services
         // ----------------------------------------------------------
         virtual void setState(bool on)
         {
-            
-            if (on)
-            {
-                _onSince = millis(); // Save time when turned on
-            }
-            else
-            {
-                _onSince = 0; // Reset when turning off
-            }
+
+            // if (on)
+            // {
+            //     _onSince = millis(); // Save time when turned on
+            // }
+            // else
+            // {
+            //     _onSince = 0; // Reset when turning off
+            // }
             _state = on;
             digitalWrite(_pump_pin, on ? HIGH : LOW);
 
@@ -140,23 +142,83 @@ namespace Services
         // ----------------------------------------------------------
         void checkMonitorPin()
         {
-            if (_mon_pin == 255)
-                return; // No monitor pin configured
+            static uint8_t sameCnt = 0;
 
-            bool current_mon_state = digitalRead(_mon_pin);
+            if (_mon_pin == 255) // Muss das sein?
+                return;
 
-            if (digitalRead(_mon_pin) == digitalRead(_pump_pin)) // LOW means transistor defect detected
+            // Nur prüfen, wenn die Pumpe laufen SOLL
+            if (!_state)
             {
-                LOGGER_ERROR_FMT("%s: Defective transistor detected on monitor pin %d", _topic.c_str(), _mon_pin);
-                // Turn off pump if it's on
-                if (_state)
-                {
-                    setState(false);
-                    publishState();
-                }
+                sameCnt = 0; // wichtig: Counter zurücksetzen
+                return;
             }
 
-            _last_mon_state = current_mon_state;
+            // ===== HIER sitzt die Entprell-Logik =====
+            bool same = (digitalRead(_mon_pin) == digitalRead(_pump_pin));
+
+            sameCnt = same ? (uint8_t)min(255, sameCnt + 1) : 0; // den teil versteh ich nicht
+
+            if (sameCnt >= 3)
+            {
+                LOGGER_ERROR_FMT(
+                    "%s: Defective transistor detected (pump=%d, monitor=%d)",
+                    _topic.c_str(),
+                    digitalRead(_pump_pin),
+                    digitalRead(_mon_pin));
+
+                setState(false);
+                publishState();
+                sameCnt = 0;
+            }
+        }
+
+        // ----------------------------------------------------------
+        // Check Timeout and set PIN hard to LOW
+        // ----------------------------------------------------------
+        void checkOffTimeout()
+        {
+            // Nur relevant, wenn Pumpe laut Software AUS sein soll
+            if (_state)
+            {
+                offTimeoutStart = 0;
+                return;
+            }
+
+            // Pin ist trotzdem HIGH → verdächtig
+            if (digitalRead(_pump_pin) == HIGH)
+            {
+
+                if (offTimeoutStart == 0)
+                {
+                    offTimeoutStart = millis(); // Start merken
+                }
+
+                // Timeout erreicht → NOTAUS
+                if (millis() - offTimeoutStart > OFF_TIMEOUT_MS)
+                {
+
+                    LOGGER_ERROR_FMT(
+                        "%s: EMERGENCY OFF (pin stuck HIGH)",
+                        _topic.c_str());
+
+                    // Hart abschalten
+                    digitalWrite(_pump_pin, LOW);
+
+                    // internen Zustand korrigieren
+                    _state = false;
+
+                    // optional: Fehler melden
+                    publishState(); // oder eigenes Error-Publish
+
+                    offTimeoutStart = 0;
+                }
+            }
+            else
+            {
+                // Pin ist LOW → alles ok
+                offTimeoutStart = 0;
+            }
         }
 
         // ----------------------------------------------------------

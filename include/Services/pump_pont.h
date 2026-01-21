@@ -5,16 +5,15 @@
 #include "myLogger.h"
 /// @endcond
 
-#include "dosingPumps.h"
+#include "Pumps_220V.h"
 
 namespace Services
 {
-    class Pump_pont : public DosingPumps
+    class Pump_pont : public Pumps_220V
     {
         public:
-        Pump_pont(uint8_t pin,
-                  uint8_t monpin) // not exist
-            : DosingPumps(pin, monpin, "pont/pump", 0, 0) {}
+        Pump_pont(const String &taskName)
+            : Pumps_220V(taskName, 0, 0, "pont/pump", 0, 0) {}
     };
 
 } // end of namespace Services

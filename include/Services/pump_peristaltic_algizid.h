@@ -19,7 +19,7 @@ namespace Services
         /// @brief Konstruktor für die Algizid-Pumpe
         /// @details Initialisiert die Pumpe mit den für Algizid spezifischen Pins und Parametern
         PumpPeristalticAlgizid(const String& taskName)
-            : PeristalticPumps(taskName,ALGIZID_PUMP, ALGIZID_MON, "pool/pump/algizid", TIMEOUT_ALGIZID_PUMP) {}
+            : PeristalticPumps(taskName) {}
     };
 } // end of namespace Services
 
