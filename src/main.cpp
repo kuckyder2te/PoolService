@@ -23,7 +23,7 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/services/pump_peristaltic_algizid.h"
 #include "../include/services/pump_pont.h"
 #include "../include/services/pump_heat.h"
-//#include "../include/services/ambience.h"
+#include "../include/services/ambience.h"
 
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -65,9 +65,9 @@ void setup()
   _network->begin(MQTT, PORT_FOR_POOLSERVICE);
 
   /* LED lights*/
-//   Tasks.add<Services::Ambience>("ambience")
-//       ->init(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE)
-//       ->startFps(1); // 10 Hz = alle 100ms
+  Tasks.add<Services::Ambience>("ambience")
+      ->init(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE)
+      ->startFps(1); // 10 Hz = alle 100ms
 
   Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
