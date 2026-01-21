@@ -1,7 +1,7 @@
 #pragma once
 /// @cond
 #include <Arduino.h>
-//#define LOCAL_DEBUG
+#define LOCAL_DEBUG
 #include "myLogger.h"
 /// @endcond
 
@@ -72,13 +72,7 @@ namespace Services
             _LED_red_pin = led_red;
             _LED_green_pin = led_green;
             _LED_blue_pin = led_blue;
-            _initialized = true;
-            return this;
-        }
-
-        virtual void begin() override
-        {
-            LOGGER_NOTICE("Ambience Task started");
+            LOGGER_NOTICE("Create Ambience Task");
             // Initialize LED pins
             pinMode(_LED_red_pin, OUTPUT);
             pinMode(_LED_green_pin, OUTPUT);
@@ -89,7 +83,8 @@ namespace Services
             analogWrite(_LED_green_pin, 255);
             analogWrite(_LED_blue_pin, 255);
 
-            //_currentState = LightState::FADE; ///Test
+            _initialized = true;
+            return this;
         }
 
         virtual void update() override
@@ -224,12 +219,14 @@ namespace Services
             analogWrite(LED_STRIPE_RED, 255 - _r);
             analogWrite(LED_STRIPE_GREEN, 255 - _g);
             analogWrite(LED_STRIPE_BLUE, 255 - _b);
+            _currentState = LightState::ON;
         }
         else
         {
             analogWrite(LED_STRIPE_RED, 255);
             analogWrite(LED_STRIPE_GREEN, 255);
             analogWrite(LED_STRIPE_BLUE, 255);
+            _currentState = LightState::OFF;
         }
         return _network->pubMsg("pool_light/state", payload);
     }
