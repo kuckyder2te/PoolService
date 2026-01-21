@@ -20,7 +20,8 @@ namespace Services
         uint8_t _LED_red_pin;
         uint8_t _LED_green_pin;
         uint8_t _LED_blue_pin;
-        static uint8_t _r, _g, _b;
+        uint8_t _r, _g, _b;
+        static Ambience* _instance; // Static pointer to the instance
         
         // State machine states
         enum class LightState {
@@ -63,8 +64,22 @@ namespace Services
             _r = 0;
             _g = 0;
             _b = 0;
+            _instance = this; // Store the instance pointer
             msgBroker.registerMessage(new State("pool/light/state"));
             msgBroker.registerMessage(new Color("pool/light/colors/rgb"));
+        }
+
+        // Method to set the state
+        void setState(LightState newState) {
+            if (_instance != nullptr) {
+                _instance->_currentState = newState;
+            }
+        }
+        // Method to set the color
+        void setColor(uint8_t r, uint8_t g, uint8_t b){
+            _r = r;
+            _g = g;
+            _b = b;
         }
 
         Ambience* init(uint8_t led_red, uint8_t led_green, uint8_t led_blue) 
@@ -216,17 +231,11 @@ namespace Services
         LOGGER_NOTICE_FMT("Set State to: %d", (uint8_t)payload["value"]);
         if ((uint8_t)payload["value"])
         {
-            analogWrite(LED_STRIPE_RED, 255 - _r);
-            analogWrite(LED_STRIPE_GREEN, 255 - _g);
-            analogWrite(LED_STRIPE_BLUE, 255 - _b);
-            _currentState = LightState::ON;
+            _instance->setState(LightState::ON);
         }
         else
         {
-            analogWrite(LED_STRIPE_RED, 255);
-            analogWrite(LED_STRIPE_GREEN, 255);
-            analogWrite(LED_STRIPE_BLUE, 255);
-            _currentState = LightState::OFF;
+            _instance->setState(LightState::OFF);
         }
         return _network->pubMsg("pool_light/state", payload);
     }
@@ -234,18 +243,10 @@ namespace Services
     bool Ambience::Color::call(JsonDocument payload)
     {
         LOGGER_NOTICE("Enter");
-        //LOGGER_NOTICE_FMT("Set Color %s", payload["value"]);      // Didn't work because payload is an object
-        _r = payload["value"]["r"];
-        _g = payload["value"]["g"];
-        _b = payload["value"]["b"];
-        analogWrite(LED_STRIPE_RED, 255 - _r);
-        analogWrite(LED_STRIPE_GREEN, 255 - _g);
-        analogWrite(LED_STRIPE_BLUE, 255 - _b);
+        _instance->setColor(payload["value"]["r"],payload["value"]["g"],payload["value"]["b"]);
         return _network->pubMsg("pool_light/colors/rgb", payload);
     }
 
-    uint8_t Ambience::_r;
-    uint8_t Ambience::_g;
-    uint8_t Ambience::_b;
+    Ambience* Ambience::_instance = nullptr; // Initialize the static instance pointer
 
 } // End namespace Services
