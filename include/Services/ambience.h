@@ -79,6 +79,7 @@ namespace Services
         Ambience(const String &name) : Task::Base(name)
         {
             LOGGER_NOTICE("Create LED stripes");
+            LOGGER_NOTICE_FMT("Ambience instance: %p", this);
             _r = 0;
             _g = 0;
             _b = 0;
@@ -86,7 +87,7 @@ namespace Services
             msgBroker.registerMessage(new State("pool/light/state"));
             msgBroker.registerMessage(new Color("pool/light/colors/rgb"));
             msgBroker.registerMessage(new Mode("pool/light/mode"));
-            msgBroker.registerMessage(new Mode("pool/light/fadespeed"));
+            msgBroker.registerMessage(new FadeSpeed("pool/light/fadespeed"));
         }
 
         // Method to set the state
@@ -110,7 +111,6 @@ namespace Services
             _LED_red_pin = led_red;
             _LED_green_pin = led_green;
             _LED_blue_pin = led_blue;
-            LOGGER_NOTICE("Create Ambience Task");
             // Initialize LED pins
             pinMode(_LED_red_pin, OUTPUT);
             pinMode(_LED_green_pin, OUTPUT);
@@ -127,23 +127,63 @@ namespace Services
 
         virtual void update() override
         {
+            // static uint32_t last = 0;
+            // const uint32_t now = millis(); // neu
+            // if (now - last > 1000)
+            // {
+            //     last = now;
+            //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
+            // } // neu
+
+            if (!_initialized)
+            {
+                _currentState = LightState::OFF;
+                _targetState = LightState::ON; // Default Static
+                setState(LightState::OFF);     // << DAS ist entscheidend
+                _initialized = true;
+            }
             // State machine implementation
             switch (_currentState)
             {
             case LightState::OFF:
-                handleOffState();
+                // if (now - last > 1000)
+                // {
+                //     last = now;
+                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
+                // } // neu
+                // handleOffState();
                 break;
             case LightState::ON:
+                // if (now - last > 1000)
+                // {
+                //     last = now;
+                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
+                // } // neu
                 handleOnState();
                 break;
             case LightState::FADE:
+                // if (now - last > 1000)
+                // {
+                //     last = now;
+                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
+                // } // neu
                 handleFadeState();
                 break;
             case LightState::COLOR_CYCLE:
-                handleColorCycleState();
+                // if (now - last > 1000)
+                // {
+                //     last = now;
+                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
+                // } // neu
+                // handleColorCycleState();
                 break;
             case LightState::BREATHING:
-                handleBreathingState();
+                // if (now - last > 1000)
+                // {
+                //     last = now;
+                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
+                // } // neu
+                // handleBreathingState();
                 break;
             }
         }
@@ -168,6 +208,7 @@ namespace Services
         void handleFadeState()
         {
             // Fade between colors
+            LOGGER_NOTICE("AnimationStep");
             unsigned long currentTime = millis();
             if (currentTime - _lastUpdate >= 50)
             { // Update every 50ms
@@ -180,6 +221,7 @@ namespace Services
                 analogWrite(_LED_red_pin, 255 - value);
                 analogWrite(_LED_green_pin, 255 - ((value + 85) % 255));
                 analogWrite(_LED_blue_pin, 255 - ((value + 170) % 255));
+                LOGGER_NOTICE_FMT("AnimationStep %i value %i ", _animationStep, value);
             }
         }
 
@@ -262,6 +304,7 @@ namespace Services
     bool Ambience::State::call(JsonDocument payload)
     { // Hier die call Implementierung des Prototyps
         LOGGER_NOTICE_FMT("Set State to: %d", (uint8_t)payload["value"]);
+        LOGGER_NOTICE_FMT("State call instance: %p", _instance);
 
         if ((uint8_t)payload["value"])
         {
@@ -285,7 +328,7 @@ namespace Services
     {
         const uint8_t m = (uint8_t)(payload["value"] | 1);
         LOGGER_NOTICE_FMT("Mode command received: %d", m);
-    
+        LOGGER_NOTICE_FMT("Mode call instance: %p", _instance);
         // Mapping:
         // 1 = Static
         // 2 = Green <-> Blue (Fade)
