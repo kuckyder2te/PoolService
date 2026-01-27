@@ -35,7 +35,6 @@ namespace Services
         };
 
         LightState _currentState = LightState::OFF;
-        // LightState _targetState = LightState::OFF;
         LightState _targetState = LightState::ON; // Default = Static
 
         // For animations
@@ -93,10 +92,8 @@ namespace Services
         // Method to set the state
         void setState(LightState newState)
         {
-            if (_instance != nullptr)
-            {
-                _instance->_currentState = newState;
-            }
+            LOGGER_NOTICE_FMT("Current State=%d", (uint8_t)_currentState);
+            _currentState = newState;
         }
         // Method to set the color
         void setColor(uint8_t r, uint8_t g, uint8_t b)
@@ -123,70 +120,68 @@ namespace Services
 
             _initialized = true;
             return this;
-        }
+        } //------------------------------- Ambience *init --------------------------//
 
         virtual void update() override
         {
-            // static uint32_t last = 0;
-            // const uint32_t now = millis(); // neu
-            // if (now - last > 1000)
-            // {
-            //     last = now;
-            //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
-            // } // neu
+            static uint32_t lastStateLog = 0;
+            const uint32_t now = millis();
+            if (now - lastStateLog > 1000)
+            {
+                lastStateLog = now;
+                LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
+            } // neu
 
             if (!_initialized)
             {
-                _currentState = LightState::OFF;
-                _targetState = LightState::ON; // Default Static
-                setState(LightState::OFF);     // << DAS ist entscheidend
+                _targetState = LightState::ON;
                 _initialized = true;
             }
             // State machine implementation
             switch (_currentState)
             {
             case LightState::OFF:
-                // if (now - last > 1000)
-                // {
-                //     last = now;
-                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
-                // } // neu
-                // handleOffState();
+                if (now - lastStateLog > 1000) // neu
+                {
+                    lastStateLog = now;
+                    LOGGER_NOTICE_FMT("STATE OFF =%d", (uint8_t)_currentState);
+                } // neu
+                handleOffState();
                 break;
             case LightState::ON:
-                // if (now - last > 1000)
-                // {
-                //     last = now;
-                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
-                // } // neu
+                if (now - lastStateLog > 1000)
+                {
+                    lastStateLog = now;
+                    LOGGER_NOTICE_FMT("STATE ON =%d", (uint8_t)_currentState);
+                } // neu
                 handleOnState();
                 break;
             case LightState::FADE:
-                // if (now - last > 1000)
-                // {
-                //     last = now;
-                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
-                // } // neu
+                if (now - lastStateLog > 1000)
+                {
+                    lastStateLog = now;
+                    LOGGER_NOTICE_FMT("STATE FADE =%d", (uint8_t)_currentState);
+                } // neu
                 handleFadeState();
                 break;
             case LightState::COLOR_CYCLE:
-                // if (now - last > 1000)
-                // {
-                //     last = now;
-                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
-                // } // neu
-                // handleColorCycleState();
+                if (now - lastStateLog > 1000)
+                {
+                    lastStateLog = now;
+                    LOGGER_NOTICE_FMT("STATE COLOR_CYCLE =%d", (uint8_t)_currentState);
+                } // neu
+                handleColorCycleState();
                 break;
             case LightState::BREATHING:
-                // if (now - last > 1000)
-                // {
-                //     last = now;
-                //     LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
-                // } // neu
-                // handleBreathingState();
+                if (now - lastStateLog > 1000)
+                {
+                    lastStateLog = now;
+                    LOGGER_NOTICE_FMT("STATE BREATHING=%d", (uint8_t)_currentState);
+                } // neu
+                handleBreathingState();
                 break;
             }
-        }
+        } //------------------------------- update  ----------------------------------//
 
     private:
         void handleOffState()
@@ -195,7 +190,7 @@ namespace Services
             analogWrite(_LED_red_pin, 255);
             analogWrite(_LED_green_pin, 255);
             analogWrite(_LED_blue_pin, 255);
-        }
+        } //-------------------------- handleOffState ---------------------------------//
 
         void handleOnState()
         {
@@ -203,7 +198,7 @@ namespace Services
             analogWrite(_LED_red_pin, 255 - _r);
             analogWrite(_LED_green_pin, 255 - _g);
             analogWrite(_LED_blue_pin, 255 - _b);
-        }
+        } //-------------------------- handleOnState ----------------------------------//
 
         void handleFadeState()
         {
@@ -223,7 +218,7 @@ namespace Services
                 analogWrite(_LED_blue_pin, 255 - ((value + 170) % 255));
                 LOGGER_NOTICE_FMT("AnimationStep %i value %i ", _animationStep, value);
             }
-        }
+        } //-------------------------- handleFadeState --------------------------------//
 
         void handleColorCycleState()
         {
@@ -274,7 +269,7 @@ namespace Services
                 }
                 _animationStep++;
             }
-        }
+        } //--------------------------- handleColorCycleState -------------------------//
 
         void handleBreathingState()
         {
@@ -298,31 +293,51 @@ namespace Services
                 analogWrite(_LED_green_pin, 255 - green);
                 analogWrite(_LED_blue_pin, 255 - blue);
             }
-        }
+        } //--------------------------- handleBreathingState --------------------------//
     };
 
     bool Ambience::State::call(JsonDocument payload)
     { // Hier die call Implementierung des Prototyps
-        LOGGER_NOTICE_FMT("Set State to: %d", (uint8_t)payload["value"]);
-        LOGGER_NOTICE_FMT("State call instance: %p", _instance);
 
-        if ((uint8_t)payload["value"])
+        const uint8_t v = (uint8_t)(payload["value"] | 0);
+        LOGGER_NOTICE_FMT("Set State to: %u", v);
+
+        if (_instance == nullptr)
+            return false;
+
+        if (v)
         {
-            _instance->setState(_instance->_targetState); // Neu ChatGPT
+            // AN: starte den aktuell gewählten Mode
+            _instance->setState(_instance->_targetState);
         }
         else
         {
+            // AUS: hart aus
             _instance->setState(LightState::OFF);
         }
+        // LOGGER_NOTICE_FMT("Set State to: %d", (uint8_t)payload["value"]);
+        // LOGGER_NOTICE_FMT("State call instance: %p", _instance);
+
+        // if (_instance == nullptr)
+        //     return false; // neu
+
+        // if ((uint8_t)payload["value"])
+        // {
+        //     _instance->setState(_instance->_targetState); // Neu ChatGPT
+        // }
+        // else
+        // {
+        //     _instance->setState(LightState::OFF);
+        // }
         return _network->pubMsg("pool/light/state", payload);
-    }
+    } // ----------------------------- Ambience::State::call --------------------------//
 
     bool Ambience::Color::call(JsonDocument payload)
     {
         LOGGER_NOTICE("Enter");
         _instance->setColor(payload["value"]["r"], payload["value"]["g"], payload["value"]["b"]);
         return _network->pubMsg("pool/light/colors/rgb", payload);
-    }
+    } //------------------------------- bool Ambience::Color::call -------------------//
 
     bool Ambience::Mode::call(JsonDocument payload)
     {
@@ -362,7 +377,7 @@ namespace Services
         }
 
         return true;
-    }
+    } //------------------------------- bool Ambience::Mode::call ---------------------//
 
     bool Ambience::FadeSpeed::call(JsonDocument payload)
     {
@@ -371,7 +386,7 @@ namespace Services
 
         _instance->_fadePeriodMs = s * 1000;
         return true;
-    }
+    } // ----------------------------- Ambience::FadeSpeed::call ----------------------//
 
     Ambience *Ambience::_instance = nullptr; // Initialize the static instance pointer
 
