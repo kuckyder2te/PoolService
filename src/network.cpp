@@ -147,7 +147,7 @@ void Network::sendLoggerMessage(const char *msg)
     if (_logger_client != NULL)
     {
         _logger_client->beginPacket(_logger_server, _logger_port);
-        _logger_client->println(msg);
+        _logger_client->print(msg);
         _logger_client->endPacket();
     }
 }

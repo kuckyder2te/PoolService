@@ -124,13 +124,7 @@ namespace Services
 
         virtual void update() override
         {
-            static uint32_t lastStateLog = 0;
-            const uint32_t now = millis();
-            if (now - lastStateLog > 1000)
-            {
-                lastStateLog = now;
-                LOGGER_NOTICE_FMT("STATE=%d", (uint8_t)_currentState);
-            } // neu
+         //   DebugOutput("STATE");
 
             if (!_initialized)
             {
@@ -141,43 +135,23 @@ namespace Services
             switch (_currentState)
             {
             case LightState::OFF:
-                if (now - lastStateLog > 1000) // neu
-                {
-                    lastStateLog = now;
-                    LOGGER_NOTICE_FMT("STATE OFF =%d", (uint8_t)_currentState);
-                } // neu
+             //   DebugOutput("STATE OFF");
                 handleOffState();
                 break;
             case LightState::ON:
-                if (now - lastStateLog > 1000)
-                {
-                    lastStateLog = now;
-                    LOGGER_NOTICE_FMT("STATE ON =%d", (uint8_t)_currentState);
-                } // neu
-                handleOnState();
+             //   DebugOutput("STATE ON");
+                 handleOnState();
                 break;
             case LightState::FADE:
-                if (now - lastStateLog > 1000)
-                {
-                    lastStateLog = now;
-                    LOGGER_NOTICE_FMT("STATE FADE =%d", (uint8_t)_currentState);
-                } // neu
-                handleFadeState();
+                DebugOutput("STATE FADE");
+                 handleFadeState();
                 break;
             case LightState::COLOR_CYCLE:
-                if (now - lastStateLog > 1000)
-                {
-                    lastStateLog = now;
-                    LOGGER_NOTICE_FMT("STATE COLOR_CYCLE =%d", (uint8_t)_currentState);
-                } // neu
-                handleColorCycleState();
+             //   DebugOutput("STATE OFF");
+                 handleColorCycleState();
                 break;
             case LightState::BREATHING:
-                if (now - lastStateLog > 1000)
-                {
-                    lastStateLog = now;
-                    LOGGER_NOTICE_FMT("STATE BREATHING=%d", (uint8_t)_currentState);
-                } // neu
+             //   DebugOutput("STATE BREATHING");
                 handleBreathingState();
                 break;
             }
@@ -202,22 +176,27 @@ namespace Services
 
         void handleFadeState()
         {
-            // Fade between colors
-            LOGGER_NOTICE("AnimationStep");
-            unsigned long currentTime = millis();
-            if (currentTime - _lastUpdate >= 50)
-            { // Update every 50ms
-                _lastUpdate = currentTime;
+            const uint32_t now = millis();
 
-                // Simple fade implementation - cycle through colors
-                _animationStep = (_animationStep + 1) % 255;
-                uint8_t value = _animationStep;
+            // Periodendauer für eine komplette Runde (grün->blau->grün)
+            uint32_t periodMs = _fadePeriodMs;
+            if (periodMs < 1000)
+                periodMs = 1000; // Mindestwert 1s, schützt vor 0/zu klein
 
-                analogWrite(_LED_red_pin, 255 - value);
-                analogWrite(_LED_green_pin, 255 - ((value + 85) % 255));
-                analogWrite(_LED_blue_pin, 255 - ((value + 170) % 255));
-                LOGGER_NOTICE_FMT("AnimationStep %i value %i ", _animationStep, value);
-            }
+            // Normierte Phase 0..1
+            const float t = (float)(now % periodMs) / (float)periodMs;
+
+            // Dreieckswelle: 0..1..0 (weich und stabil)
+            const float tri = (t < 0.5f) ? (t * 2.0f) : (2.0f - t * 2.0f);
+
+            // Grün -> Blau -> Grün
+            const uint8_t g = (uint8_t)(255.0f * (1.0f - tri));
+            const uint8_t b = (uint8_t)(255.0f * tri);
+
+            // Rot aus, nur G/B
+            analogWrite(_LED_red_pin, 255); // OFF (invertiert)
+            analogWrite(_LED_green_pin, 255 - g);
+            analogWrite(_LED_blue_pin, 255 - b);
         } //-------------------------- handleFadeState --------------------------------//
 
         void handleColorCycleState()
@@ -294,6 +273,18 @@ namespace Services
                 analogWrite(_LED_blue_pin, 255 - blue);
             }
         } //--------------------------- handleBreathingState --------------------------//
+
+        void DebugOutput(const char *msg)
+        {
+            static uint32_t lastStateLog = 0;
+            const uint32_t now = millis();
+            if (now - lastStateLog > 1000)
+            {
+                lastStateLog = now;
+                LOGGER_NOTICE_FMT("STATE= %s %d", msg, (uint8_t)_currentState);
+            }
+
+        } //--------------------------- DebugOutput -----------------------------------//
     };
 
     bool Ambience::State::call(JsonDocument payload)
@@ -315,20 +306,6 @@ namespace Services
             // AUS: hart aus
             _instance->setState(LightState::OFF);
         }
-        // LOGGER_NOTICE_FMT("Set State to: %d", (uint8_t)payload["value"]);
-        // LOGGER_NOTICE_FMT("State call instance: %p", _instance);
-
-        // if (_instance == nullptr)
-        //     return false; // neu
-
-        // if ((uint8_t)payload["value"])
-        // {
-        //     _instance->setState(_instance->_targetState); // Neu ChatGPT
-        // }
-        // else
-        // {
-        //     _instance->setState(LightState::OFF);
-        // }
         return _network->pubMsg("pool/light/state", payload);
     } // ----------------------------- Ambience::State::call --------------------------//
 
@@ -381,10 +358,22 @@ namespace Services
 
     bool Ambience::FadeSpeed::call(JsonDocument payload)
     {
-        uint32_t s = payload["value"] | 20; // z. B. Sekunden
-        LOGGER_NOTICE_FMT("FadeSpeed set to %u", s);
+        if (_instance == nullptr)
+            return false;
 
-        _instance->_fadePeriodMs = s * 1000;
+        // Sekunden pro kompletter Runde (grün->blau->grün)
+        uint32_t s = (uint32_t)(payload["value"] | 20);
+
+        // Grenzen (optional, aber sinnvoll)
+        if (s < 2)
+            s = 2;
+        if (s > 300)
+            s = 300;
+
+        _instance->_fadePeriodMs = s * 1000UL;
+        LOGGER_NOTICE("FadeSpeed::call hit");
+        LOGGER_NOTICE_FMT("FadeSpeed set to %u s (%lu ms)", s, (unsigned long)_instance->_fadePeriodMs);
+
         return true;
     } // ----------------------------- Ambience::FadeSpeed::call ----------------------//
 

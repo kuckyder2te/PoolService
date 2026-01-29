@@ -62,12 +62,13 @@ void setup()
 
   _network = new Network(SID, PW, HOSTNAME, MQTT, MessageBroker::callback);
   //_network->begin("192.168.2.157",PORT_FOR_POOLSERVICE);
-  _network->begin(MQTT, PORT_FOR_POOLSERVICE);
+  //_network->begin(MQTT, PORT_FOR_POOLSERVICE);
+  _network->begin(LOGGER, PORT_FOR_POOLSERVICE);
 
   /* LED lights*/
   Tasks.add<Services::Ambience>("ambience")
       ->init(LED_STRIPE_RED, LED_STRIPE_GREEN, LED_STRIPE_BLUE)
-      ->startFps(1); // 10 Hz = alle 100ms
+      ->startFps(30); // 10 Hz = alle 100ms
 
   Tasks.add<Services::Temperature>("temperature")
       ->init(DALLAS)
