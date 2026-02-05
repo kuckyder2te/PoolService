@@ -23,6 +23,7 @@ namespace Services
         uint8_t _r, _g, _b;
         uint32_t _fadePeriodMs = 20000; // Default: 20s
         static Ambience *_instance;     // Static pointer to the instance
+        char _msg[30];
 
         // State machine states
         enum class LightState
@@ -124,7 +125,7 @@ namespace Services
 
         virtual void update() override
         {
-         //   DebugOutput("STATE");
+            //   DebugOutput("STATE");
 
             if (!_initialized)
             {
@@ -135,23 +136,23 @@ namespace Services
             switch (_currentState)
             {
             case LightState::OFF:
-             //   DebugOutput("STATE OFF");
+                //   DebugOutput("STATE OFF");
                 handleOffState();
                 break;
             case LightState::ON:
-             //   DebugOutput("STATE ON");
-                 handleOnState();
+                //   DebugOutput("STATE ON");
+                handleOnState();
                 break;
             case LightState::FADE:
                 DebugOutput("STATE FADE");
-                 handleFadeState();
+                handleFadeState();
                 break;
             case LightState::COLOR_CYCLE:
-             //   DebugOutput("STATE OFF");
-                 handleColorCycleState();
+                //   DebugOutput("STATE OFF");
+                handleColorCycleState();
                 break;
             case LightState::BREATHING:
-             //   DebugOutput("STATE BREATHING");
+                //   DebugOutput("STATE BREATHING");
                 handleBreathingState();
                 break;
             }
@@ -193,64 +194,105 @@ namespace Services
             const uint8_t g = (uint8_t)(255.0f * (1.0f - tri));
             const uint8_t b = (uint8_t)(255.0f * tri);
 
+            // r, g, b sind uint8_t (0..255)
+            snprintf(
+                _msg,
+                sizeof(_msg),
+                "{\"value\":{\"r\":%u,\"g\":%u,\"b\":%u}}",
+                _r,
+                _g,
+                _b);
+            _network->pubMsg("outGarden/pool/light/rgb", _msg);
+
+            LOGGER_NOTICE_FMT("Colors r = %d g = %d b = %d", _r, _g, _b);
+
             // Rot aus, nur G/B
             analogWrite(_LED_red_pin, 255); // OFF (invertiert)
             analogWrite(_LED_green_pin, 255 - g);
             analogWrite(_LED_blue_pin, 255 - b);
         } //-------------------------- handleFadeState --------------------------------//
 
+        // Hilfsfunktion: HSV->RGB (0..255)
+        static void hsvToRgb(uint8_t h, uint8_t s, uint8_t v, uint8_t &r, uint8_t &g, uint8_t &b)
+        {
+            const uint8_t region = h / 43; // 0..5
+            const uint8_t remainder = (h - (region * 43)) * 6;
+
+            const uint8_t p = (uint16_t)v * (255 - s) / 255;
+            const uint8_t q = (uint16_t)v * (255 - ((uint16_t)s * remainder) / 255) / 255;
+            const uint8_t t = (uint16_t)v * (255 - ((uint16_t)s * (255 - remainder)) / 255) / 255;
+
+            switch (region)
+            {
+            case 0:
+                r = v;
+                g = t;
+                b = p;
+                break;
+            case 1:
+                r = q;
+                g = v;
+                b = p;
+                break;
+            case 2:
+                r = p;
+                g = v;
+                b = t;
+                break;
+            case 3:
+                r = p;
+                g = q;
+                b = v;
+                break;
+            case 4:
+                r = t;
+                g = p;
+                b = v;
+                break;
+            default:
+                r = v;
+                g = p;
+                b = q;
+                break;
+            }
+        } //--------------------------- end of hsvToRgb -------------------------//
+
         void handleColorCycleState()
         {
-            // Cycle through predefined colors
-            unsigned long currentTime = millis();
-            if (currentTime - _lastUpdate >= 1000)
-            { // Change color every second
-                _lastUpdate = currentTime;
+            const uint32_t now = millis();
 
-                // Cycle through colors: Red, Green, Blue, Yellow, Purple, Cyan, White
-                switch (_animationStep % 7)
-                {
-                case 0: // Red
-                    analogWrite(_LED_red_pin, 0);
-                    analogWrite(_LED_green_pin, 255);
-                    analogWrite(_LED_blue_pin, 255);
-                    break;
-                case 1: // Green
-                    analogWrite(_LED_red_pin, 255);
-                    analogWrite(_LED_green_pin, 0);
-                    analogWrite(_LED_blue_pin, 255);
-                    break;
-                case 2: // Blue
-                    analogWrite(_LED_red_pin, 255);
-                    analogWrite(_LED_green_pin, 255);
-                    analogWrite(_LED_blue_pin, 0);
-                    break;
-                case 3: // Yellow
-                    analogWrite(_LED_red_pin, 0);
-                    analogWrite(_LED_green_pin, 0);
-                    analogWrite(_LED_blue_pin, 255);
-                    break;
-                case 4: // Purple
-                    analogWrite(_LED_red_pin, 0);
-                    analogWrite(_LED_green_pin, 255);
-                    analogWrite(_LED_blue_pin, 0);
-                    break;
-                case 5: // Cyan
-                    analogWrite(_LED_red_pin, 255);
-                    analogWrite(_LED_green_pin, 0);
-                    analogWrite(_LED_blue_pin, 0);
-                    break;
-                case 6: // White
-                    analogWrite(_LED_red_pin, 0);
-                    analogWrite(_LED_green_pin, 0);
-                    analogWrite(_LED_blue_pin, 0);
-                    break;
-                }
-                _animationStep++;
-            }
+            uint32_t periodMs = _fadePeriodMs;
+            if (periodMs < 1000)
+                periodMs = 1000;
+
+            // Hue läuft 0..255 über eine Runde
+            const uint8_t hue = (uint8_t)((now % periodMs) * 255UL / periodMs);
+
+            uint8_t r, g, b;
+            hsvToRgb(hue, 255, 255, r, g, b);
+
+            // r, g, b sind uint8_t (0..255)
+            snprintf(
+                _msg,
+                sizeof(_msg),
+                "{\"value\":{\"r\":%u,\"g\":%u,\"b\":%u}}",
+                _r,
+                _g,
+                _b);
+            _network->pubMsg("outGarden/pool/light/rgb", _msg);
+
+            LOGGER_NOTICE_FMT("CycleColors r = %d g = %d b = %d", _r, _g, _b);
+
+            // invertierte PWM
+            analogWrite(_LED_red_pin, 255 - r);
+            analogWrite(_LED_green_pin, 255 - g);
+            analogWrite(_LED_blue_pin, 255 - b);
         } //--------------------------- handleColorCycleState -------------------------//
 
         void handleBreathingState()
+        /*
+        Derzeit nicht aktiv. Wird in einem späteren Upgade wieder aufgenommen.
+        */
         {
             // Breathing effect (fade in and out)
             unsigned long currentTime = millis();
@@ -267,6 +309,18 @@ namespace Services
                 uint8_t red = (brightness * (255 - _r)) / 255;
                 uint8_t green = (brightness * (255 - _g)) / 255;
                 uint8_t blue = (brightness * (255 - _b)) / 255;
+
+                // r, g, b sind uint8_t (0..255)
+                snprintf(
+                    _msg,
+                    sizeof(_msg),
+                    "{\"value\":{\"r\":%u,\"g\":%u,\"b\":%u}}",
+                    _r,
+                    _g,
+                    _b);
+                _network->pubMsg("outGarden/pool/light/rgb", _msg);
+
+                LOGGER_NOTICE_FMT("BreathingColors r = %d g = %d b = %d", _r, _g, _b);
 
                 analogWrite(_LED_red_pin, 255 - red);
                 analogWrite(_LED_green_pin, 255 - green);
@@ -367,11 +421,10 @@ namespace Services
         // Grenzen (optional, aber sinnvoll)
         if (s < 2)
             s = 2;
-        if (s > 300)
-            s = 300;
+        if (s > 60)
+            s = 60;
 
         _instance->_fadePeriodMs = s * 1000UL;
-        LOGGER_NOTICE("FadeSpeed::call hit");
         LOGGER_NOTICE_FMT("FadeSpeed set to %u s (%lu ms)", s, (unsigned long)_instance->_fadePeriodMs);
 
         return true;
