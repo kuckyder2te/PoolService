@@ -393,10 +393,10 @@ namespace Services
             target = LightState::ON;
             break;
         case 2:
-            target = LightState::FADE;
+            target = LightState::FADE;  // green - blue - green
             break;
         case 3:
-            target = LightState::COLOR_CYCLE;  // green - blue - green
+            target = LightState::COLOR_CYCLE;  // rainbow
             break;
         default:
             target = LightState::ON;
