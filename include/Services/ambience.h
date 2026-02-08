@@ -197,7 +197,7 @@ namespace Services
             const uint8_t b = (uint8_t)(255.0f * tri);
 
             // r, g, b sind uint8_t (0..255)
-            if (now - lastPub >= 500)  // nur Debug sonst 500
+            if (now - lastPub >= 500) // nur Debug sonst 500
             {
                 lastPub = now;
 
@@ -295,10 +295,10 @@ namespace Services
             analogWrite(_LED_blue_pin, 255 - b);
         } //--------------------------- handleColorCycleState -------------------------//
 
-        void handleBreathingState()
-        /*
+/*      void handleBreathingState()
+        
         Derzeit nicht aktiv. Wird in einem späteren Upgrade wieder aufgenommen.
-        */
+    
         {
             // Breathing effect (fade in and out)
             unsigned long currentTime = millis();
@@ -333,6 +333,50 @@ namespace Services
                 analogWrite(_LED_blue_pin, 255 - blue);
             }
         } //--------------------------- handleBreathingState --------------------------//
+*/
+void handleBreathingState()
+{
+    const uint32_t now = millis();
+    static uint32_t lastPub = 0;
+
+    // Periodendauer für eine komplette Atemrunde (hell->dunkel->hell)
+    uint32_t periodMs = _fadePeriodMs;
+    if (periodMs < 1000) periodMs = 1000;
+
+    // Phase 0..1
+    const float t = (float)(now % periodMs) / (float)periodMs;
+
+    // Sinus 0..1..0 (weich)
+    // sin(2πt) liefert -1..+1 -> umformen auf 0..1
+    const float s = (sinf(t * 6.2831853f) + 1.0f) * 0.5f;
+
+    // optional: nie ganz aus (wirkt schöner)
+    const float minB = 0.10f;                // 10% Minimum
+    const float brightness = minB + (1.0f - minB) * s;  // 0.1..1.0
+
+    // Basisfarbe: nutze _r/_g/_b (0..255, NICHT invertiert)
+    const uint8_t red   = (uint8_t)((float)_r * brightness);
+    const uint8_t green = (uint8_t)((float)_g * brightness);
+    const uint8_t blue  = (uint8_t)((float)_b * brightness);
+
+    // LEDs ausgeben (invertierte PWM)
+    analogWrite(_LED_red_pin,   255 - red);
+    analogWrite(_LED_green_pin, 255 - green);
+    analogWrite(_LED_blue_pin,  255 - blue);
+
+    // Rückmeldung an Node-RED drosseln (z.B. alle 500ms)
+    if (now - lastPub >= 500)
+    {
+        lastPub = now;
+
+        char msg[64];
+        snprintf(msg, sizeof(msg),
+                 "{\"value\":{\"r\":%u,\"g\":%u,\"b\":%u}}",
+                 (unsigned)red, (unsigned)green, (unsigned)blue);
+
+        _network->pubMsg("outGarden/pool/light/rgb", msg);
+    }
+}
 
         void DebugOutput(const char *msg)
         {
@@ -385,6 +429,7 @@ namespace Services
         // 1 = Static
         // 2 = Green <-> Blue (Fade)
         // 3 = Rainbow
+        // 4 = Breathing
         LightState target = LightState::ON;
 
         switch (m)
@@ -393,10 +438,13 @@ namespace Services
             target = LightState::ON;
             break;
         case 2:
-            target = LightState::FADE;  // green - blue - green
+            target = LightState::FADE; // green - blue - green
             break;
         case 3:
-            target = LightState::COLOR_CYCLE;  // rainbow
+            target = LightState::COLOR_CYCLE; // rainbow
+            break;
+        case 4:
+            target = LightState::BREATHING;
             break;
         default:
             target = LightState::ON;
