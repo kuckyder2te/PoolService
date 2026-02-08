@@ -23,7 +23,7 @@ namespace Services
         uint8_t _r, _g, _b;
         uint32_t _fadePeriodMs = 20000; // Default: 20s
         static Ambience *_instance;     // Static pointer to the instance
-        char _msg[30];
+        char _msg[64];
 
         // State machine states
         enum class LightState
@@ -178,6 +178,7 @@ namespace Services
         void handleFadeState()
         {
             const uint32_t now = millis();
+            static uint32_t lastPub = 0;
 
             // Periodendauer für eine komplette Runde (grün->blau->grün)
             uint32_t periodMs = _fadePeriodMs;
@@ -191,22 +192,24 @@ namespace Services
             const float tri = (t < 0.5f) ? (t * 2.0f) : (2.0f - t * 2.0f);
 
             // Grün -> Blau -> Grün
+            const uint8_t r = 0;
             const uint8_t g = (uint8_t)(255.0f * (1.0f - tri));
             const uint8_t b = (uint8_t)(255.0f * tri);
 
             // r, g, b sind uint8_t (0..255)
-            snprintf(
-                _msg,
-                sizeof(_msg),
-                "{\"value\":{\"r\":%u,\"g\":%u,\"b\":%u}}",
-                _r,
-                _g,
-                _b);
-            _network->pubMsg("outGarden/pool/light/rgb", _msg);
+            if (now - lastPub >= 500)  // nur Debug sonst 500
+            {
+                lastPub = now;
 
-            LOGGER_NOTICE_FMT("Colors r = %d g = %d b = %d", _r, _g, _b);
+                char msg[64];
+                snprintf(msg, sizeof(msg),
+                         "{\"value\":{\"r\":%u,\"g\":%u,\"b\":%u}}",
+                         (unsigned)r, (unsigned)g, (unsigned)b);
+                LOGGER_NOTICE_FMT("Colors r = %d g = %d b = %d", r, g, b);
+                _network->pubMsg("outGarden/pool/light/rgb", msg);
+            }
 
-            // Rot aus, nur G/B
+            // Rot aus, nur Gelb/Blau
             analogWrite(_LED_red_pin, 255); // OFF (invertiert)
             analogWrite(_LED_green_pin, 255 - g);
             analogWrite(_LED_blue_pin, 255 - b);
@@ -260,6 +263,7 @@ namespace Services
         void handleColorCycleState()
         {
             const uint32_t now = millis();
+            static uint32_t lastPub = 0;
 
             uint32_t periodMs = _fadePeriodMs;
             if (periodMs < 1000)
@@ -272,16 +276,18 @@ namespace Services
             hsvToRgb(hue, 255, 255, r, g, b);
 
             // r, g, b sind uint8_t (0..255)
-            snprintf(
-                _msg,
-                sizeof(_msg),
-                "{\"value\":{\"r\":%u,\"g\":%u,\"b\":%u}}",
-                _r,
-                _g,
-                _b);
-            _network->pubMsg("outGarden/pool/light/rgb", _msg);
+            if (now - lastPub >= 500)
+            {
+                lastPub = now;
 
-            LOGGER_NOTICE_FMT("CycleColors r = %d g = %d b = %d", _r, _g, _b);
+                char msg[64];
+                snprintf(msg, sizeof(msg),
+                         "{\"value\":{\"r\":%u,\"g\":%u,\"b\":%u}}",
+                         (unsigned)r, (unsigned)g, (unsigned)b);
+                _network->pubMsg("outGarden/pool/light/rgb", msg);
+            }
+
+            LOGGER_NOTICE_FMT("CycleColors r = %d g = %d b = %d", r, g, b);
 
             // invertierte PWM
             analogWrite(_LED_red_pin, 255 - r);
@@ -291,7 +297,7 @@ namespace Services
 
         void handleBreathingState()
         /*
-        Derzeit nicht aktiv. Wird in einem späteren Upgade wieder aufgenommen.
+        Derzeit nicht aktiv. Wird in einem späteren Upgrade wieder aufgenommen.
         */
         {
             // Breathing effect (fade in and out)
@@ -320,7 +326,7 @@ namespace Services
                     _b);
                 _network->pubMsg("outGarden/pool/light/rgb", _msg);
 
-                LOGGER_NOTICE_FMT("BreathingColors r = %d g = %d b = %d", _r, _g, _b);
+                LOGGER_NOTICE_FMT("BreathingColors r = %d g = %d b = %d", red, green, blue);
 
                 analogWrite(_LED_red_pin, 255 - red);
                 analogWrite(_LED_green_pin, 255 - green);
@@ -390,7 +396,7 @@ namespace Services
             target = LightState::FADE;
             break;
         case 3:
-            target = LightState::COLOR_CYCLE;
+            target = LightState::COLOR_CYCLE;  // green - blue - green
             break;
         default:
             target = LightState::ON;
