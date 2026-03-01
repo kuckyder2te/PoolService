@@ -72,7 +72,7 @@ namespace Services
             }
 
             sprintf(_msg, "{ \"value\":%.1f }", _current_pool);
-            _network->pubMsg("outGarden/current_temp_pool", _msg);
+            _network->pubMsg("outGarden/pool/temperature", _msg);
         }
     };
 } // End namespace Services
