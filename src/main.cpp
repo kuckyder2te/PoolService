@@ -18,12 +18,16 @@ char logBuf[DEBUG_MESSAGE_BUFFER_SIZE];
 #include "../include/network.h"
 #include "../include/messageBroker.h"
 #include "../include/services/temperature.h"
-#include "../include/services/pump_peristaltic_hcl.h"
-#include "../include/services/pump_peristaltic_naoh.h"
-#include "../include/services/pump_peristaltic_algizid.h"
+#include "../include/Services/dosier_HCL.h"
+#include "../include/Services/dosier_ALGIZID.h"
+#include "../include/Services/dosier_NAOH.h"
+// #include "../include/services/pump_peristaltic_hcl.h"
+// #include "../include/services/pump_peristaltic_naoh.h"
+// #include "../include/services/pump_peristaltic_algizid.h"
 #include "../include/services/pump_pont.h"
 #include "../include/services/pump_heat.h"
 #include "../include/services/ambience.h"
+// #include "../include/Services/peristaltic_hcl.h"
 
 #include <ArduinoJson.h>
 #include "secrets.h"
@@ -37,7 +41,7 @@ HardwareSerial *DebugOutput = &Serial;
 
 MessageBroker msgBroker;
 
-//Services::Ambience *LEDLights;
+// Services::Ambience *LEDLights;
 
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
@@ -53,7 +57,7 @@ void setup()
 #endif
 #ifdef DEBUG_DESTINATION_UDP
   Logger::setOutputFunction(&MyLoggerOutput::localUdpLogger);
-  //Logger::setOutputFunction(&MyLoggerOutput::willyUdpLogger);
+  // Logger::setOutputFunction(&MyLoggerOutput::willyUdpLogger);
 #endif
   Logger::setLogLevel(Logger::DEBUG); // Muss immer einen Wert in platformio.ini haben (SILENT)
   delay(500);                         // For switching on Serial Monitor
@@ -75,26 +79,29 @@ void setup()
       ->startFps(0.003); // ~ 5 minuten
 
   // Add 220V pumps to TaskManager
-  Tasks.add<Services::Pump_pont>("pump_pont")
+  Tasks.add<Services::Pump_pont>("garden/pump/pont")
       ->init(PONT_PUMP, 255)
       ->startFps(10); // 10 Hz = alle 100ms
 
-  Tasks.add<Services::Pump_heat>("pump_heat")
+  Tasks.add<Services::Pump_heat>("pool/pump/heat")
       ->init(HEAT_PUMP, 255)
       ->startFps(10); // 10 Hz = alle 100ms
 
   // Add peristaltic pumps to TaskManager
-  Tasks.add<Services::PumpPeristalticHCL>("pump_hcl")
-      ->init(HCL_PUMP, HCL_MON, "pool/pump/hcl", TIMEOUT_HCL_PUMP)
-      ->startFps(10); // 10 Hz = alle 100ms
+  Tasks.add<Services::dosierHcl>("dosier_hcl")
+      ->startFps(10); // 10 Hz :contentReference[oaicite:5]{index=5}
 
-  Tasks.add<Services::PumpPeristalticNAOH>("pump_naoh")
-      ->init(NAOH_PUMP, NAOH_MON, "pool/pump/naoh", TIMEOUT_NAOH_PUMP)
-      ->startFps(10); // 10 Hz = alle 100ms
+  // Tasks.add<Services::PumpPeristalticHCL>("pump_hcl")
+  //     ->init(HCL_PUMP, HCL_MON, "pool/pump/hcl", TIMEOUT_HCL_PUMP)
+  //     ->startFps(10); // 10 Hz = alle 100ms
 
-  Tasks.add<Services::PumpPeristalticAlgizid>("pump_algizid")
-      ->init(ALGIZID_PUMP, ALGIZID_MON, "pool/pump/algizid", TIMEOUT_ALGIZID_PUMP)
-      ->startFps(10); // 10 Hz = alle 100ms
+  // Tasks.add<Services::PumpPeristalticNAOH>("pump_naoh")
+  //     ->init(NAOH_PUMP, NAOH_MON, "pool/pump/naoh", TIMEOUT_NAOH_PUMP)
+  //     ->startFps(10); // 10 Hz = alle 100ms
+
+  // Tasks.add<Services::PumpPeristalticAlgizid>("pump_algizid")
+  //     ->init(ALGIZID_PUMP, ALGIZID_MON, "pool/pump/algizid", TIMEOUT_ALGIZID_PUMP)
+  //     ->startFps(10); // 10 Hz = alle 100ms
 
   msgBroker.printTopics();
 

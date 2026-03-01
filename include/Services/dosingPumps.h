@@ -6,146 +6,127 @@
 #include "myLogger.h"
 /// @endcond
 
+#include <TaskManager.h>      // hideakitai/TaskManager :contentReference[oaicite:2]{index=2}
 #include "../message.h"
 #include "../messageBroker.h"
+#include "../network.h"
 
-namespace Services
-{
+extern Network* _network;
+extern MessageBroker msgBroker;
 
-    class DosingPumps
-    {
-    protected:
-        uint8_t _pump_pin;
-        uint8_t _mon_pin;
-        String _topic;
-        bool _state = false;
+namespace Services {
 
-        unsigned long _lastCmd = 0;
-        unsigned long _debounceMs = 200; // Standard value
-        unsigned long _timeoutMs = 0;    // 0 = disable
-        unsigned long _onSince = 0;      // Time from which the pump is ON
+class dosingPumps : public Task::Base {
+protected:
+    uint8_t _pump_pin;
+    uint8_t _mon_pin;
+    String  _topic;
+    bool    _state = false;
 
-        String _topic_prefix; // z.B. "hcl_pump"
+ //   unsigned long _debounceMs = 200; // ignoriert (wie gewünscht)
+    unsigned long _timeoutMs  = 0;   // 0 = disable
+    unsigned long _onSince    = 0;   // Zeitpunkt ab dem Pumpe AN ist
 
-    private:
-        class StateMsg : public Message
-        {
-            DosingPumps &_parent;
-
-        public:
-            StateMsg(DosingPumps &parent, const String &topic)
-                : Message(topic), _parent(parent) {}
-
-            bool call(JsonDocument payload) override
-            {
-                return _parent.onMessage(payload);
-            }
-        };
-
+private:
+    class CmdMsg : public Message {
+        dosingPumps& _parent;
     public:
-        DosingPumps(uint8_t pumpPin,
-                    uint8_t monPin,
-                    const String &topic,
-                    unsigned long debounceMs = 200,
-                    unsigned long timeoutMs = 0)
-            : _pump_pin(pumpPin),
-              _mon_pin(monPin),
-              _topic(topic),
-              _debounceMs(debounceMs),
-              _timeoutMs(timeoutMs)
-        {
-            LOGGER_NOTICE_FMT("Create dosing pump '%s' on pin %d", _topic.c_str(), _pump_pin);
+        CmdMsg(dosingPumps& parent, const String& topic)
+            : Message(topic), _parent(parent) {}
 
-            pinMode(_pump_pin, OUTPUT);
-            digitalWrite(_pump_pin, LOW);
-
-            if (_mon_pin != 255) // Check if a monitor PIN is implemented.
-            {
-                pinMode(_mon_pin, INPUT_PULLUP); // default
-                digitalWrite(_mon_pin, LOW);     // Is this OK?
-            }
-
-            msgBroker.registerMessage(new StateMsg(*this, _topic + "/state"));
-        }
-
-        virtual ~DosingPumps() = default;
-
-        // ----------------------------------------------------------
-        // Processing MQTT messages
-        // ----------------------------------------------------------
-        bool onMessage(JsonDocument payload)
-        {
-            static unsigned long _lastCmd = millis();
-
-            // Debounce: Ignore MQTT commands arriving too quickly
-            if (millis() - _lastCmd <= _debounceMs)
-            {
-                LOGGER_NOTICE_FMT("%s: command debounced (%lums)", _topic.c_str(), millis() - _lastCmd);
-                return true;
-            }
-            _lastCmd = millis();
-
-            // Accept only boolean
-            if (payload.is<bool>())
-            {
-                setState(payload.as<bool>());
-                publishState();
-                return true;
-            }
-
-            LOGGER_WARNING_FMT("%s: Payload not bool", _topic.c_str());
-            return false;
-        }
-
-        // Must be called periodically (e.g., in loop()).
-        virtual void update(unsigned long now = millis())
-        {
-            if (_state && _timeoutMs > 0 && _onSince > 0)
-            {
-                LOGGER_NOTICE_FMT("%s: timeout reached (%lums)", _topic.c_str(), _timeoutMs);
-                if (now - _onSince >= _timeoutMs)
-                {
-                    LOGGER_NOTICE_FMT("%s: timeout reached (%lums)", _topic.c_str(), _timeoutMs);
-
-                    setState(false);
-                    publishState();
-                }
-            }
-        }
-
-        // ----------------------------------------------------------
-        // Switch ON/OFF
-        // ----------------------------------------------------------
-        virtual void setState(bool on)
-        {
-            if (on)
-            {
-                _onSince = millis(); // Zeitpunkt des Einschaltens speichern
-            }
-            else
-            {
-                _onSince = 0; // Beim Ausschalten zurücksetzen
-            }
-            _state = on;
-            digitalWrite(_pump_pin, on ? HIGH : LOW);
-
-            LOGGER_NOTICE_FMT("%s %s (pin %d)", _topic.c_str(), on ? "ON" : "OFF", _pump_pin);
-        }
-
-        // bool getState() const { return _state; } // Not used anywhere
-
-        // void setDebounce(unsigned long ms) { _debounceMs = ms; } // Not used anywhere
-
-    protected:
-        // ----------------------------------------------------------
-        // Puplish state wia MQTT
-        // ----------------------------------------------------------
-        void publishState()
-        {
-            DynamicJsonDocument doc(64);
-            doc.set(_state);
-            _network->pubMsg((_topic + "/state").c_str(), doc);
+        bool call(JsonDocument payload) override {
+            return _parent.onMessage(payload);
         }
     };
 
-} // end of namespace Services
+public:
+    // WICHTIG: Name muss als erstes rein, weil Tasks.add<T>("name") diesen ctor nutzt. :contentReference[oaicite:3]{index=3}
+    dosingPumps(const String& taskName,
+               uint8_t pumpPin,
+               uint8_t monPin,
+               const String& topic,
+//               unsigned long /*debounceMs*/ = 200,  // ignoriert
+               unsigned long timeoutMs = 0)
+        : Task::Base(taskName),
+          _pump_pin(pumpPin),
+          _mon_pin(monPin),
+          _topic(topic),
+          _timeoutMs(timeoutMs)
+    {
+        LOGGER_NOTICE_FMT("Create dosing pump '%s' on pin %d", _topic.c_str(), _pump_pin);
+
+        pinMode(_pump_pin, OUTPUT);
+        digitalWrite(_pump_pin, LOW);
+
+        if (_mon_pin != 255) {
+            pinMode(_mon_pin, INPUT_PULLUP);
+        }
+
+        // Eingehende Commands auf _topic (z.B. "pool/pump/hcl")
+        // MessageBroker strippt "inGarden/" vorher weg -> Topic muss ohne Root sein.
+        msgBroker.registerMessage(new CmdMsg(*this, _topic));
+    }
+
+    virtual ~dosingPumps() = default;
+
+    // hideakitai TaskManager ruft update() zyklisch auf, wenn die Task läuft. :contentReference[oaicite:4]{index=4}
+    void update() override {
+        tick(millis());
+    }
+
+    // ----------------------------------------------------------
+    // MQTT handling: erwartet bool (true=ON / false=OFF)
+    // ----------------------------------------------------------
+    bool onMessage(JsonDocument payload) {
+        // _debounceMs wird ignoriert: keine Debounce-Logik
+
+        if (payload.is<bool>()) {
+            setState(payload.as<bool>());
+            publishState();
+            return true;
+        }
+
+        LOGGER_WARNING_FMT("%s: Payload not bool", _topic.c_str());
+        return false;
+    }
+
+    // ----------------------------------------------------------
+    // Periodische Logik
+    // ----------------------------------------------------------
+    virtual void tick(unsigned long now) {
+        if (_state && _timeoutMs > 0 && _onSince > 0) {
+            if (now - _onSince >= _timeoutMs) {
+                LOGGER_NOTICE_FMT("%s: timeout reached (%lums)", _topic.c_str(), _timeoutMs);
+                setState(false);
+                publishState();
+            }
+        }
+    }
+
+    // ----------------------------------------------------------
+    // Switch ON/OFF
+    // ----------------------------------------------------------
+    virtual void setState(bool on) {
+        _onSince = on ? millis() : 0;
+        _state = on;
+
+        digitalWrite(_pump_pin, on ? HIGH : LOW);
+        LOGGER_NOTICE_FMT("%s %s (pin %d)", _topic.c_str(), on ? "ON" : "OFF", _pump_pin);
+    }
+
+protected:
+    // ----------------------------------------------------------
+    // Publish state via MQTT (outGarden/...)
+    // ----------------------------------------------------------
+    void publishState() {
+        JsonDocument doc;
+        doc.set(_state);
+
+        if (_network) {
+            // Status nach "<topic>/state" (z.B. "pool/pump/hcl/state")
+            _network->pubMsg((_topic + "/state").c_str(), doc);
+        }
+    }
+};
+
+} // namespace Services
